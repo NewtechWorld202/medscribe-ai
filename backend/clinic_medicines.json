@@ -1,0 +1,87 @@
+{
+  "_about": "Clinic medicine list. SAMPLE DEFAULTS - the clinic's doctor must review and replace every default before use. Defaults are only ever shown as unconfirmed suggestions; they are never written into a note as confirmed.",
+  "version": "sample-2026-11-17",
+  "medicines": [
+    {
+      "id": "aceclofenac_pcm",
+      "name": "Tab Aceclofenac + Paracetamol",
+      "strength": "100/325 mg",
+      "default_dose": "BD (1-0-1)",
+      "timing": "After food",
+      "duration": "5 days",
+      "aliases": ["aceclofenac", "aceclofenac paracetamol", "zerodol p", "hifenac p", "एसिक्लोफेनाक", "एसीक्लोफेनाक", "ऍसिक्लोफेनाक"]
+    },
+    {
+      "id": "paracetamol_650",
+      "name": "Tab Paracetamol",
+      "strength": "650 mg",
+      "default_dose": "TDS (1-1-1)",
+      "timing": "After food",
+      "duration": "3 days",
+      "aliases": ["paracetamol", "dolo", "dolo 650", "crocin", "पैरासिटामोल", "पेरासिटामोल", "पॅरासिटामॉल", "डोलो", "क्रोसिन"]
+    },
+    {
+      "id": "pantoprazole_40",
+      "name": "Tab Pantoprazole",
+      "strength": "40 mg",
+      "default_dose": "OD (1-0-0)",
+      "timing": "Before food",
+      "duration": "5 days",
+      "aliases": ["pantoprazole", "pan 40", "pan-40", "pantop", "पैंटोप्राजोल", "पेंटोप्राजोल", "पैंटोप्राज़ोल", "पॅन्टोप्राझोल", "पँटोप्राझोल", "पैन 40"]
+    },
+    {
+      "id": "calcium_d3",
+      "name": "Tab Calcium + Vitamin D3",
+      "strength": "500 mg + 250 IU",
+      "default_dose": "OD (1-0-0)",
+      "timing": "After food",
+      "duration": "30 days",
+      "aliases": ["calcium", "shelcal", "कैल्शियम", "कॅल्शियम", "शेलकैल"]
+    },
+    {
+      "id": "cholecalciferol_60k",
+      "name": "Cap Cholecalciferol",
+      "strength": "60000 IU",
+      "default_dose": "Once weekly",
+      "timing": "After food",
+      "duration": "8 weeks",
+      "aliases": ["cholecalciferol", "vitamin d3 60000", "d3 60000", "uprise d3", "विटामिन डी", "व्हिटॅमिन डी"]
+    },
+    {
+      "id": "thiocolchicoside_4",
+      "name": "Tab Thiocolchicoside",
+      "strength": "4 mg",
+      "default_dose": "BD (1-0-1)",
+      "timing": "After food",
+      "duration": "5 days",
+      "aliases": ["thiocolchicoside", "myoril", "थायोकोलचिकोसाइड", "मायोरिल"]
+    },
+    {
+      "id": "etoricoxib_90",
+      "name": "Tab Etoricoxib",
+      "strength": "90 mg",
+      "default_dose": "OD (1-0-0)",
+      "timing": "After food",
+      "duration": "5 days",
+      "aliases": ["etoricoxib", "etoshine", "nucoxia", "इटोरिकॉक्सिब", "एटोरिकोक्सिब"]
+    },
+    {
+      "id": "pregabalin_75",
+      "name": "Cap Pregabalin",
+      "strength": "75 mg",
+      "default_dose": "HS (0-0-1)",
+      "timing": "At bedtime",
+      "duration": "14 days",
+      "aliases": ["pregabalin", "pregalin", "प्रीगाबालिन", "प्रेगाबालिन"]
+    },
+    {
+      "id": "diclofenac_gel",
+      "name": "Gel Diclofenac",
+      "strength": "1%",
+      "default_dose": "TDS (1-1-1)",
+      "timing": "Local application",
+      "duration": "2 weeks",
+      "aliases": ["diclofenac gel", "diclofenac", "volini", "voveran gel", "डाइक्लोफेनाक", "डायक्लोफेनाक", "वोलिनी", "व्होलिनी"]
+    }
+  ]
+}

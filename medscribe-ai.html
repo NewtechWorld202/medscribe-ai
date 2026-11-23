@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f8a8a">
+<meta name="description" content="MedScribe AI — ambient clinical scribe for Parasnath Speciality Clinic, by Revonix.Solution">
+<title>MedScribe AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f7f8; --surface:#ffffff; --surface-2:#eef4f5; --text:#0f1f24; --muted:#5b6d72; --border:#dbe5e8;
+  --accent:#0f8a8a; --accent-strong:#0b6f70; --accent-soft:#dff3f1; --accent-2:#2563eb; --on-accent:#ffffff;
+  --danger:#dc2626; --danger-soft:#fde4e4; --warn:#a15c07; --warn-soft:#fdf1d2; --ok:#15803d; --ok-soft:#dcf5e3;
+  --shadow:0 1px 2px rgba(15,31,36,.05),0 4px 14px rgba(15,31,36,.06); --shadow-lg:0 12px 40px rgba(15,31,36,.18);
+  --radius:16px; --radius-sm:10px; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a1416; --surface:#111d20; --surface-2:#172629; --text:#e4eef0; --muted:#8fa3a8; --border:#22363a;
+    --accent:#2cc4b4; --accent-strong:#5fd8ca; --accent-soft:#113533; --accent-2:#60a5fa; --on-accent:#04201d;
+    --danger:#f87171; --danger-soft:#3a1717; --warn:#fbbf24; --warn-soft:#352709; --ok:#4ade80; --ok-soft:#0f2d1a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); --shadow-lg:0 12px 40px rgba(0,0,0,.55); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a1416; --surface:#111d20; --surface-2:#172629; --text:#e4eef0; --muted:#8fa3a8; --border:#22363a;
+  --accent:#2cc4b4; --accent-strong:#5fd8ca; --accent-soft:#113533; --accent-2:#60a5fa; --on-accent:#04201d;
+  --danger:#f87171; --danger-soft:#3a1717; --warn:#fbbf24; --warn-soft:#352709; --ok:#4ade80; --ok-soft:#0f2d1a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); --shadow-lg:0 12px 40px rgba(0,0,0,.55); color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+h1,h2,h3,h4,.display{font-family:'DM Sans','Inter',sans-serif;letter-spacing:-.015em;line-height:1.2}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+svg{flex-shrink:0}
+.hidden{display:none!important}
+
+/* App bar */
+.appbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:calc(env(safe-area-inset-top) + 8px) max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left))}
+.appbar-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:42px}
+.appbar h1{font-size:18px;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appbar .sub{font-size:12px;color:var(--muted);font-weight:500;display:block;font-family:Inter,sans-serif;letter-spacing:0}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;color:var(--text);transition:background .15s,transform .1s}
+.icon-btn:active{transform:scale(.95)}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff}
+
+main#view{max-width:760px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) calc(100px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));animation:fadeUp .28s ease}
+main#view.no-nav{padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Bottom nav */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(0,0,0,.04)}
+.nav-inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.nav button{background:none;border:0;padding:9px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:11px;font-weight:600;position:relative;transition:color .15s}
+.nav button svg{width:22px;height:22px}
+.nav button.active{color:var(--accent)}
+.nav button.active::before{content:'';position:absolute;top:0;left:32%;right:32%;height:3px;border-radius:0 0 4px 4px;background:var(--accent)}
+
+/* Cards & layout */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.card + .card,.stack > * + *{margin-top:12px}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:22px 2px 10px}
+.section-title h3{font-size:16px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:420px){.grid-3{gap:8px}}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;border:1px solid transparent;padding:11px 16px;font-weight:600;font-size:15px;transition:transform .1s,background .15s,opacity .15s,box-shadow .15s;white-space:nowrap}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:var(--on-accent);box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 30%,transparent)}
+.btn-primary:hover:not(:disabled){background:var(--accent-strong)}
+.btn-ghost{background:var(--surface);border-color:var(--border);color:var(--text)}
+.btn-ghost:hover:not(:disabled){background:var(--surface-2)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-soft{background:var(--accent-soft);color:var(--accent-strong)}
+.btn-block{width:100%}
+.btn-lg{padding:15px 18px;font-size:16px;border-radius:14px}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:10px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.badge-draft{background:var(--warn-soft);color:var(--warn)}
+.badge-approved{background:var(--ok-soft);color:var(--ok)}
+.badge-live{background:var(--danger);color:#fff}
+.badge-mode-live{background:var(--ok-soft);color:var(--ok)}
+.badge-mode-sim{background:var(--warn-soft);color:var(--warn)}
+.badge-neutral{background:var(--surface-2);color:var(--muted)}
+
+/* Forms */
+.field{display:block;margin-bottom:14px}
+.field > span{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--muted)}
+.input,select.input,textarea.input{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--border);background:var(--surface);outline:none;transition:border .15s,box-shadow .15s;font-size:15px}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+textarea.input{resize:vertical;min-height:70px;line-height:1.45}
+.input:disabled,.input[readonly]{background:var(--surface-2)}
+.search{position:relative}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search .input{padding-left:40px}
+
+/* Segmented */
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:7px 14px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted);transition:background .15s,color .15s}
+.seg button.on{background:var(--surface);color:var(--accent-strong);box-shadow:var(--shadow)}
+
+/* Lists */
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:10px;transition:background .15s}
+.li:last-child{border-bottom:0}
+.li:hover{background:var(--surface-2)}
+.li .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .meta{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex-shrink:0;font-family:'DM Sans',sans-serif}
+.avatar.lg{width:64px;height:64px;font-size:22px}
+.chev{color:var(--muted)}
+.empty{padding:28px 10px;text-align:center;color:var(--muted)}
+
+/* Stats */
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,border-color .15s;text-align:left}
+.stat:hover{border-color:var(--accent)}
+.stat:active{transform:scale(.98)}
+.stat.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+.stat .num{font-family:'DM Sans',sans-serif;font-size:28px;font-weight:700;line-height:1.1}
+.stat .lbl{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
+
+.hero{background:linear-gradient(135deg,var(--accent) 0%,color-mix(in srgb,var(--accent-2) 75%,var(--accent)) 100%);color:#fff;border-radius:20px;padding:20px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.1)}
+.hero h2{font-size:22px;margin-bottom:4px}
+.hero p{opacity:.9;font-size:14px}
+.hero .btn{background:#fff;color:#0b5f60;margin-top:16px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+
+/* Login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 24px) 16px calc(env(safe-area-inset-bottom) + 24px);background:radial-gradient(circle at 20% 0%,var(--accent-soft),transparent 55%),radial-gradient(circle at 100% 100%,color-mix(in srgb,var(--accent-2) 14%,transparent),transparent 50%)}
+.login-card{width:100%;max-width:400px;animation:fadeUp .35s ease}
+.login-logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;margin:0 auto 14px;box-shadow:var(--shadow-lg)}
+
+/* Recording */
+.rec-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite}
+.badge-live{box-shadow:0 0 0 0 rgba(220,38,38,.6);animation:ring 1.6s ease-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55)}100%{box-shadow:0 0 0 12px rgba(220,38,38,0)}}
+.wave{display:flex;align-items:center;justify-content:center;gap:4px;height:74px;margin:18px 0 6px}
+.wave span{width:5px;border-radius:5px;background:linear-gradient(to top,var(--accent),var(--accent-2));height:12px;animation:wave 1.1s ease-in-out infinite}
+.wave.paused span{animation-play-state:paused;opacity:.4}
+@keyframes wave{0%,100%{height:10px}50%{height:var(--h,56px)}}
+.timer{font-family:'DM Sans',sans-serif;font-size:44px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.transcript{max-height:46vh;min-height:180px;overflow-y:auto;background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:15px;scroll-behavior:smooth}
+.transcript p{margin-bottom:8px}
+.transcript .spk{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-right:6px;padding:1px 6px;border-radius:6px}
+.spk.d{background:var(--accent-soft);color:var(--accent-strong)}
+.spk.p{background:color-mix(in srgb,var(--accent-2) 16%,transparent);color:var(--accent-2)}
+.interim{font-style:italic;color:var(--muted)}
+
+/* Review */
+.cp-sec{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:12px 0;border-bottom:1px dashed var(--border)}
+.cp-sec:last-child{border-bottom:0}
+.cp-num{width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent-strong);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.cp-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.cp-val{white-space:pre-wrap;word-break:break-word}
+.cp-empty{color:var(--muted);font-style:italic;font-size:14px}
+.soap-sec{padding:14px 0;border-bottom:1px dashed var(--border)}
+.soap-sec:last-child{border-bottom:0}
+.soap-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.soap-letter{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'DM Sans',sans-serif;color:#fff}
+.tbl-wrap{overflow-x:auto;margin-top:4px;border:1px solid var(--border);border-radius:10px}
+table.meds{width:100%;border-collapse:collapse;font-size:14px;min-width:460px}
+table.meds th{background:var(--surface-2);text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:8px 10px}
+table.meds td{padding:8px 10px;border-top:1px solid var(--border);vertical-align:top}
+table.meds td input{width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:14px;min-width:70px}
+.consent{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;background:var(--surface-2);cursor:pointer}
+.consent input{width:20px;height:20px;accent-color:var(--accent);margin-top:2px;flex-shrink:0}
+.flag{font-size:12px;background:var(--warn-soft);color:var(--warn);padding:2px 7px;border-radius:6px;font-weight:600}
+.sug{margin-top:2px;font-weight:500;line-height:1.5}
+.notice{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;font-size:13px;background:var(--accent-soft);color:var(--accent-strong)}
+.notice.warn{background:var(--warn-soft);color:var(--warn)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.actions .btn{flex:1 1 120px}
+
+/* Audit */
+.audit-item{display:flex;gap:12px;padding:12px 2px;border-bottom:1px solid var(--border)}
+.audit-item:last-child{border-bottom:0}
+.audit-ic{width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+/* Settings */
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.set-row:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+/* Modal & toast */
+.backdrop{position:fixed;inset:0;z-index:100;background:rgba(5,15,18,.5);display:flex;align-items:flex-end;justify-content:center;animation:fade .2s ease;padding:0}
+@media (min-width:600px){.backdrop{align-items:center;padding:16px}}
+@keyframes fade{from{opacity:0}}
+.modal{background:var(--surface);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:var(--shadow-lg);animation:slideUp .25s cubic-bezier(.2,.9,.3,1);max-height:92vh;overflow-y:auto}
+@media (min-width:600px){.modal{border-radius:20px;padding-bottom:20px}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}}
+.modal h3{font-size:19px;margin-bottom:8px}
+.modal .actions{margin-top:18px}
+.toasts{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top) + 12px);z-index:200;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
+.toast{background:var(--text);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);animation:toastIn .25s ease;max-width:440px;pointer-events:auto}
+.toast.ok{background:var(--ok);color:#fff}.toast.err{background:var(--danger);color:#fff}.toast.warn{background:#b45309;color:#fff}
+.toast.out{opacity:0;transform:translateY(-8px);transition:.25s}
+@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}}
+.spinner{width:42px;height:42px;border-radius:50%;border:4px solid var(--accent-soft);border-top-color:var(--accent);animation:spin .8s linear infinite;margin:10px auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface);border:1px solid var(--border)}
+.chip .avatar{width:28px;height:28px;font-size:11px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<header class="appbar hidden" id="appbar">
+  <div class="appbar-inner">
+    <button class="icon-btn hidden" id="backBtn" aria-label="Back" onclick="App.back()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="brand-mark" id="brandMark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 12h3l3-7 4 14 3-7h5"/></svg></div>
+    <h1 id="appTitle">MedScribe AI<span class="sub">Parasnath Speciality Clinic</span></h1>
+    <div id="appbarRight"></div>
+  </div>
+</header>
+<main id="view"></main>
+<nav class="nav hidden" id="nav">
+  <div class="nav-inner">
+    <button data-nav="dashboard" onclick="App.nav('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Dashboard</button>
+    <button data-nav="patients" onclick="App.nav('patients')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14.6c2 .7 3.2 2.5 3.6 5.4"/></svg>Patients</button>
+    <button data-nav="audit" onclick="App.nav('audit')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6M8 2.5h8v3H8z"/><path d="M6 4H5a1 1 0 00-1 1v15a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1h-1"/><path d="M8 11h8M8 15h5"/></svg>Audit</button>
+    <button data-nav="settings" onclick="App.nav('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Settings</button>
+  </div>
+</nav>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<noscript><p style="padding:20px">MedScribe AI needs JavaScript enabled. Please open this file in Google Chrome.</p></noscript>
+
+<script>
+'use strict';
+/* =========================================================
+   MedScribe AI — single-file ambient clinical scribe
+   Parasnath Speciality Clinic · by Revonix.Solution
+   All data is in-memory only (cleared on refresh).
+   ========================================================= */
+
+const VERSION = '1.0.0';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = p => p + '_' + Math.random().toString(36).slice(2, 9);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const SR_API = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+/* ---------------- State ---------------- */
+const S = {
+  user: null,
+  screen: 'login', params: {}, history: [],
+  settings: { lang: 'hi-IN', defaultFormat: 'case', theme: 'auto', fee: 500, demoMode: false },
+  patients: [], consultations: [], audit: [],
+  rec: null,
+  review: { cid: null, format: 'case', editing: false },
+  dashFilter: 'all',
+  auditFilter: 'all',
+};
+
+const LANGS = { 'hi-IN': 'Hindi (India) + English terms', 'en-IN': 'English (India)', 'mr-IN': 'Marathi', 'gu-IN': 'Gujarati' };
+
+/* ---------------- Optional backend (Whisper speech-to-text + clinic medicine list) ----------------
+   The page works without it (browser Web Speech only). When the backend answers:
+   - If its provider is real Whisper (Groq in the cloud, or local Whisper on this Mac), the consultation
+     audio is also recorded and sent to it on Stop; that transcript (with Doctor/Patient labels)
+     replaces the browser's live one.
+   - A mock/demo backend is NEVER used for a real recording.
+   - If Whisper fails, the error is shown and the browser's own live transcript is kept.
+   - The clinic medicine list adds default doses only as UNCONFIRMED suggestions. */
+const API_BASE = (location.protocol.startsWith('http') && location.port === '8770') ? location.origin : 'http://127.0.0.1:8770';
+S.backend = { checked: false, ok: false, provider: '', demo: true, reason: '', model: '', noteAI: null };
+async function apiFetch(path, opts = {}, ms = 4000) {
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(API_BASE + path, { ...opts, signal: ctl.signal }); } finally { clearTimeout(t); }
+}
+async function checkBackend() {
+  try {
+    const r = await apiFetch('/api/health', {}, 2500); const j = await r.json();
+    S.backend = { checked: true, ok: !!j.ok, provider: j.provider || '', demo: !!j.demo, reason: j.reason || j.message || '', model: j.model || '', noteAI: j.note_ai || null };
+  } catch (_) { S.backend = { checked: true, ok: false, provider: '', demo: true, reason: 'Backend not running', model: '', noteAI: null }; }
+  return S.backend;
+}
+const STT_REAL = ['groq', 'local'];
+const useServerSTT = () => S.backend.ok && STT_REAL.includes(S.backend.provider) && !S.backend.demo;
+const sttName = () => S.backend.provider === 'local' ? 'Whisper on this Mac' : 'Groq Whisper';
+async function startAudioCapture(r) {
+  if (!useServerSTT() || !window.MediaRecorder || !navigator.mediaDevices?.getUserMedia) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (S.rec !== r || !r.active || r.mode !== 'live') { stream.getTracks().forEach(t => t.stop()); return; }
+    const mr = new MediaRecorder(stream);
+    r.audio = { mr, stream, chunks: [] };
+    mr.ondataavailable = e => { if (e.data && e.data.size) r.audio.chunks.push(e.data); };
+    mr.start(1000);
+  } catch (e) { r.audioError = e.name || 'error'; }
+}
+function stopAudioCapture(r) {
+  return new Promise(res => {
+    const a = r && r.audio; if (!a) return res(null);
+    r.audio = null;
+    const done = () => { a.stream.getTracks().forEach(t => t.stop()); res(new Blob(a.chunks, { type: a.mr.mimeType || 'audio/webm' })); };
+    if (a.mr.state === 'inactive') return done();
+    a.mr.onstop = done; try { a.mr.stop(); } catch (_) { done(); }
+  });
+}
+async function serverTranscribe(blob, lang) {
+  const fd = new FormData();
+  const ext = /ogg/.test(blob.type) ? 'ogg' : /mp4|m4a|aac/.test(blob.type) ? 'm4a' : 'webm';
+  fd.append('audio', blob, 'consultation.' + ext); fd.append('language', lang);
+  const r = await apiFetch('/api/transcribe', { method: 'POST', body: fd }, S.backend.provider === 'local' ? 600000 : 120000);
+  let j; try { j = await r.json(); } catch (_) { j = { ok: false, message: 'Backend returned HTTP ' + r.status }; }
+  if (!r.ok || !j.ok) throw new Error(j.message || 'Transcription failed (HTTP ' + r.status + ')');
+  if (j.demo || !STT_REAL.includes(j.provider)) throw new Error('The backend returned demo data, so it was not used for a real recording');
+  return j;
+}
+async function fetchClinicMeds(transcript) {
+  if (!S.backend.ok || !String(transcript || '').trim()) return null;
+  try {
+    const r = await apiFetch('/api/extract-medicines', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ transcript }) }, 5000);
+    const j = await r.json(); return j.ok ? j.medicines : null;
+  } catch (_) { return null; }
+}
+/* ---- AI note writing (backend /api/note: Groq in the cloud, or Ollama on this Mac) ----
+   The AI writes the case-paper fields from the real transcript. The backend drops any medicine
+   whose supporting quote is not in the transcript. If AI notes are off or fail, the page's own
+   rule-based builder (extractNote) is used on the same transcript. There is never a sample note. */
+const useNoteAI = () => !!(S.backend.ok && S.backend.noteAI && S.backend.noteAI.enabled);
+const isLocalAI = () => useNoteAI() && S.backend.noteAI.provider === 'ollama';
+const aiLabel = j => j.provider === 'ollama' ? `${j.model}, on this Mac` : `${j.model}, Groq`;
+async function serverNote(transcript, lang) {
+  const r = await apiFetch('/api/note', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ transcript, language: lang }) }, isLocalAI() ? 330000 : 60000);
+  let j; try { j = await r.json(); } catch (_) { j = { ok: false, message: 'Backend returned HTTP ' + r.status }; }
+  if (!r.ok || !j.ok) throw new Error(j.message || 'AI note failed (HTTP ' + r.status + ')');
+  return j;
+}
+function noteFromAI(ai, patient) {
+  const n = ai.note || {};
+  const note = {
+    patientName: patient ? patient.name : '', ageGender: patient ? `${patient.age} / ${patient.gender}` : '',
+    chiefComplaint: n.chief_complaint || '', painDetails: n.pain_details || '', pastHistory: n.past_history || '',
+    examination: n.examination || '', investigation: n.investigation || '', diagnosis: n.diagnosis || '',
+    medicines: (n.medicines || []).map(m => {
+      const med = { name: [m.name, m.strength && !String(m.name).includes(m.strength) ? m.strength : ''].filter(Boolean).join(' '),
+        frequency: m.frequency || '', timing: m.timing || '', duration: m.duration || '', quote: m.quote || '' };
+      // Details the AI gave but the backend could not find in what was said: unconfirmed, like clinic defaults.
+      const u = m.unverified || {}; if (Object.keys(u).length) { med.suggest = { ...u }; med.suggestFrom = 'ai'; }
+      return med;
+    }),
+    advice: n.advice || '', adviceTemplated: false, followUpDate: '', followUpNote: '', fee: String(S.settings.fee),
+  };
+  const fu = n.follow_up || {};
+  if (fu.after_days) { note.followUpDate = isoDate(addDur(fu.after_days, 'day')); note.followUpNote = fu.note || `After ${durText(fu.after_days, 'day')}`; }
+  else if (fu.note) note.followUpNote = fu.note;
+  return note;
+}
+/* Build a draft from a transcript: AI first (if the backend has it), else the rule-based builder.
+   Returns { note, source, aiError, dropped }. */
+async function buildDraft(transcript, patient, lang, medMatches) {
+  let note = null, source = 'Rule-based extraction', aiError = '', dropped = [];
+  if (String(transcript || '').trim()) {
+    if (!S.backend.checked) await checkBackend();
+    if (useNoteAI()) {
+      try {
+        const j = await serverNote(transcript, lang);
+        note = noteFromAI(j, patient); dropped = j.dropped || [];
+        if (!medMatches) medMatches = j.medicines;
+        source = `AI note (${aiLabel(j)})`;
+      } catch (e) { aiError = e.name === 'AbortError' ? 'AI note timed out' : e.message; }
+    }
+  }
+  const ai = !!note;
+  if (!note) note = extractNote(transcript, patient);
+  if (!medMatches) medMatches = await fetchClinicMeds(transcript);
+  mergeClinicMeds(note, medMatches, ai);
+  return { note, source, aiError, dropped };
+}
+const MED_FIELDS = ['frequency', 'timing', 'duration'];
+/* Merge clinic-list matches into the extracted medicines. Only medicines named in the transcript
+   arrive here. Spoken details fill empty fields; clinic defaults go to m.suggest (unconfirmed),
+   never into the medicine's own fields until the doctor confirms them. */
+function mergeClinicMeds(note, matches, fromAI = false) {
+  if (!matches || !matches.length) return;
+  for (const m of matches) {
+    const key = m.name.replace(/^(Tab|Cap|Gel|Inj|Syp|Oint)\s+/i, '').split(/[\s+]/)[0].toLowerCase();
+    const said = String(m.mentioned_as || '').toLowerCase();
+    let med = note.medicines.find(x => { const n = x.name.toLowerCase(); return n.includes(key) || (said && n.includes(said)); });
+    // The AI reads context (who prescribed, what was stopped), so for AI notes the clinic list
+    // only enriches medicines the AI kept; it does not re-add ones the AI left out.
+    if (!med && fromAI) continue;
+    if (!med) { med = { name: m.name, frequency: '', timing: '', duration: '' }; note.medicines.push(med); }
+    med.clinicId = m.clinic_id;
+    if (m.spoken.strength && !/\d/.test(med.name)) med.name += ' ' + m.spoken.strength;
+    // Rule-based notes: the backend reads only up to the next medicine, so its spoken details win
+    // over the page's wider guess. AI notes: the AI's spoken details are kept; regex only fills gaps.
+    for (const f of MED_FIELDS) med[f] = fromAI ? (med[f] || m.spoken[f] || '') : (m.spoken[f] || '');
+    const sug = fromAI ? { ...(med.suggest || {}) } : {};
+    if (m.suggested.strength && !/\d/.test(med.name) && !sug.strength) sug.strength = m.suggested.strength;
+    for (const f of MED_FIELDS) { if (med[f]) delete sug[f]; else if (m.suggested[f] && !sug[f]) sug[f] = m.suggested[f]; }
+    if (/\d/.test(med.name)) delete sug.strength;
+    if (Object.keys(sug).length) med.suggest = sug; else delete med.suggest;
+  }
+}
+const hasSuggest = m => !!(m.suggest && Object.keys(m.suggest).length);
+const pendingSuggestions = n => n.medicines.filter(hasSuggest).length;
+
+/* ---------------- Helpers ---------------- */
+function fmtDate(d) { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
+function fmtTime(d) { return new Date(d).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }); }
+function fmtDT(d) { return fmtDate(d) + ', ' + fmtTime(d); }
+function isSameDay(a, b) { a = new Date(a); b = new Date(b); return a.toDateString() === b.toDateString(); }
+function relDay(d) {
+  const t = new Date(); const y = new Date(); y.setDate(t.getDate() - 1);
+  if (isSameDay(d, t)) return 'Today, ' + fmtTime(d);
+  if (isSameDay(d, y)) return 'Yesterday, ' + fmtTime(d);
+  return fmtDT(d);
+}
+function mmss(sec) { sec = Math.max(0, Math.floor(sec)); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
+function isoDate(d) { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); }
+function initials(name) { return String(name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase(); }
+function hue(str) { let h = 0; for (const ch of String(str)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
+function avatar(name, cls = '') { return `<div class="avatar ${cls}" style="background:hsl(${hue(name)} 50% 42%)">${esc(initials(name))}</div>`; }
+function getP(id) { return S.patients.find(p => p.id === id); }
+function getC(id) { return S.consultations.find(c => c.id === id); }
+function consultsOf(pid) { return S.consultations.filter(c => c.patientId === pid).sort((a, b) => b.date - a.date); }
+function statusBadge(st) { return st === 'approved' ? '<span class="badge badge-approved">✓ APPROVED</span>' : '<span class="badge badge-draft">● DRAFT</span>'; }
+function displayName(u) { if (!u) return ''; return u.role === 'Doctor' && !/^dr\.?\s/i.test(u.name) ? 'Dr. ' + u.name : u.name; }
+function isDoctor() { return S.user && S.user.role === 'Doctor'; }
+
+/* ---------------- Audit ---------------- */
+const AUDIT_ICON = { login: '🔐', logout: '🚪', record: '🎙️', generate: '🤖', approve: '✅', edit: '✏️', reopen: '🔓', register: '🧑‍⚕️', export: '📤', settings: '⚙️', fallback: '⚠️', discard: '🗑️', regenerate: '🔄', view: '👁️' };
+const AUDIT_LABEL = { login: 'Login', logout: 'Sign out', record: 'Recording', generate: 'Note generated', approve: 'Approved', edit: 'Edited', reopen: 'Reopened', register: 'Patient registered', export: 'Exported', settings: 'Settings', fallback: 'Microphone / demo', discard: 'Discarded', regenerate: 'Regenerated', view: 'Viewed' };
+function audit(type, detail, opts = {}) {
+  S.audit.unshift({ id: uid('a'), type, detail, user: opts.user || (S.user ? displayName(S.user) : 'System'), role: opts.role || (S.user ? S.user.role : ''), ts: opts.ts || new Date() });
+}
+
+/* ---------------- Toast & modal ---------------- */
+function toast(msg, kind = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind; el.textContent = msg;
+  $('#toasts').appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 2800);
+}
+function modal({ title, body = '', actions = [], dismissible = true }) {
+  const bd = document.createElement('div');
+  bd.className = 'backdrop';
+  bd.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${title ? `<h3>${esc(title)}</h3>` : ''}<div class="modal-body">${body}</div>${actions.length ? `<div class="actions">${actions.map((a, i) => `<button class="btn ${a.cls || 'btn-ghost'}" data-i="${i}">${a.label}</button>`).join('')}</div>` : ''}</div>`;
+  const close = () => { bd.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape' && dismissible) close(); };
+  document.addEventListener('keydown', onKey);
+  bd.addEventListener('click', e => {
+    if (e.target === bd && dismissible) return close();
+    const b = e.target.closest('button[data-i]');
+    if (b) { const a = actions[+b.dataset.i]; const keep = a.onClick ? a.onClick(bd) : false; if (keep !== true) close(); }
+  });
+  document.body.appendChild(bd);
+  const first = bd.querySelector('input,select,textarea'); if (first) setTimeout(() => first.focus(), 60);
+  return close;
+}
+function confirmModal(title, text, okLabel, okCls, onOk) {
+  modal({ title, body: `<p class="muted">${text}</p>`, actions: [{ label: 'Cancel' }, { label: okLabel, cls: okCls || 'btn-primary', onClick: onOk }] });
+}
+
+/* =========================================================
+   Clinical extraction engine (rule-based, conservative)
+   - Medicines are ONLY taken from what was spoken.
+   - Anything not clearly stated is left blank.
+   ========================================================= */
+const NUMW = { ek: 1, do: 2, teen: 3, char: 4, chaar: 4, paanch: 5, panch: 5, chhe: 6, chhah: 6, saat: 7, aath: 8, nau: 9, das: 10, pandrah: 15, bees: 20, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, ten: 10, 'एक': 1, 'दो': 2, 'तीन': 3, 'चार': 4, 'पांच': 5, 'पाँच': 5, 'छह': 6, 'सात': 7, 'आठ': 8, 'दस': 10, 'पंद्रह': 15 };
+const NUM_ALT = '\\d+|' + Object.keys(NUMW).sort((a, b) => b.length - a.length).join('|');
+const UNIT_ALT = 'dino|din|days|day|hafton|hafte|hafta|weeks|week|mahino|mahine|mahina|months|month|saal|years|year|दिनों|दिन|हफ़्ते|हफ्ते|हफ्ता|सप्ताह|महीने|महीना|साल';
+const durRe = () => new RegExp(`(?<![\\p{L}\\p{M}\\d])(${NUM_ALT})\\s*(${UNIT_ALT})(?![\\p{L}\\p{M}])`, 'giu');
+function numOf(n) { return /^\d+$/.test(n) ? +n : (NUMW[n.toLowerCase()] || NUMW[n] || 0); }
+function unitOf(u) { u = u.toLowerCase(); if (/^(din|day|दिन)/.test(u)) return 'day'; if (/^(haft|week|हफ|सप्ताह)/.test(u)) return 'week'; if (/^(mahi|month|मही)/.test(u)) return 'month'; return 'year'; }
+function durText(n, u) { return n + ' ' + u + (n > 1 ? 's' : ''); }
+function addDur(n, u, from = new Date()) { const d = new Date(from); d.setDate(d.getDate() + n * ({ day: 1, week: 7, month: 30, year: 365 }[u])); return d; }
+
+const PARTS = [
+  { k: 'knee', re: /ghutn|ghutan|ghutne|knee|घुटन|घुटने|घुटना/i, label: 'knee' },
+  { k: 'shoulder', re: /kandh|shoulder|कंध/i, label: 'shoulder' },
+  { k: 'neck', re: /gardan|neck|गर्दन|cervical/i, label: 'neck' },
+  { k: 'back', re: /kamar|lower back|back|peeth|कमर|पीठ|lumbar/i, label: 'low back' },
+  { k: 'hip', re: /kulh|\bhip\b|कूल्ह/i, label: 'hip' },
+  { k: 'ankle', re: /ankle|takhn|टखन/i, label: 'ankle' },
+  { k: 'heel', re: /\bedi\b|aedi|heel|एड़ी/i, label: 'heel' },
+  { k: 'elbow', re: /kohni|elbow|कोहनी/i, label: 'elbow' },
+  { k: 'wrist', re: /kalai|wrist|कलाई/i, label: 'wrist' },
+];
+const PAIN_WORD = /dard|pain|takleef|takleef|दर्द|तकलीफ|akdan|stiff/i;
+function partOf(s) { for (const p of PARTS) if (p.re.test(s)) return p; return null; }
+function sideOf(s) {
+  const l = s.toLowerCase();
+  if (/\b(dono|both|bilateral)\b|दोनों/.test(l)) return 'Bilateral';
+  if (/\b(right|daayen|dayen|dahine|dahina|daaya|daya)\b|दाएं|दाहिन|दायें/.test(l)) return 'Right';
+  if (/\b(left|baayen|bayen|baaya|baya)\b|बाएं|बायें/.test(l)) return 'Left';
+  return '';
+}
+function sentencesOf(text) {
+  return String(text || '').split(/\n+/)
+    .flatMap(line => line.replace(/^\s*(doctor|patient|dr|speaker|डॉक्टर|मरीज़)\s*:\s*/i, '').split(/(?<=[.?!।])\s+/))
+    .map(s => s.trim()).filter(Boolean);
+}
+const isQ = s => /\?\s*$/.test(s);
+function negatedAfter(l, end, start) {
+  const tail = l.slice(end, end + 24).split(/[.,!?।;]/)[0];
+  const pre = l.slice(Math.max(0, start - 14), start);
+  return /(^|[^a-z])(nahi|nahin|nhi|nai|no|not|never)(?![a-z])|नहीं|नही/.test(tail) || /(no|not|without|bina|koi)\s+$/.test(pre) && !/koi\s+$/.test(pre) || /\bno\s+$/.test(pre);
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function titleCase(s) { return s.split(/(\s+|\+)/).map(w => /^[a-z]/i.test(w) ? (/^d3$/i.test(w) ? 'D3' : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()) : w).join(''); }
+function uniq(a) { return [...new Set(a.filter(Boolean))]; }
+
+const MED_STOP = new Set(['dono', 'ek', 'do', 'ki', 'ka', 'ke', 'ko', 'mein', 'me', 'aur', 'lena', 'lijiye', 'dunga', 'deta', 'de', 'di', 'lagana', 'lagwa', 'lagwana', 'chahiye', 'roz', 'the', 'a', 'an', 'for', 'is', 'and', 'or', 'nahi', 'bhi', 'wala', 'wali', 'se', 'par', 'pe', 'lagi', 'laga', 'lagaiye', 'leni', 'lete', 'lene', 'khana', 'khaiye', 'dena', 'liya', 'lagega', 'ghutne', 'yeh', 'ye', 'ya']);
+const MED_RE = /(?<![\p{L}\p{M}])(tablets?|tabs?|capsules?|caps?|injections?|inj|syrup|syp|gel|ointment|oint|टैबलेट|टेबलेट|कैप्सूल|इंजेक्शन|जेल|सिरप)\.?\s+([\p{L}\p{M}][\p{L}\p{M}\d\-]*(?:\s*(?:\+|plus|प्लस)\s*[\p{L}\p{M}\d][\p{L}\p{M}\d\-]*)*(?:\s+(?:acid|sr|er|cr|mr|forte|d3|xl|sodium|potassium))?)(?:\s*(\d+(?:\.\d+)?)\s*(mg|mcg|gm|g|ml|iu|एमजी|मिलीग्राम)?(?![\p{L}]))?/giu;
+function medPrefix(p) {
+  p = p.toLowerCase();
+  if (/^tab|टैब|टेब/.test(p)) return 'Tab'; if (/^cap|कैप/.test(p)) return 'Cap'; if (/^inj|इंजे/.test(p)) return 'Inj';
+  if (/^sy|सिर/.test(p)) return 'Syp'; if (/^gel|जेल/.test(p)) return 'Gel'; return 'Oint';
+}
+const FREQ = [
+  [/weekly|hafte mein ek|हफ्ते में एक/, 'Once weekly'],
+  [/single dose|ek injection|one injection|ek dose|ek hi baar/, 'Single dose'],
+  [/\bsos\b|zar[uo]+rat|जरूरत|ज़रूरत|if needed|when required/, 'SOS'],
+  [/teen baar|thrice|\btds\b|\btid\b|din mein 3|तीन बार|1-1-1/, 'TDS (1-1-1)'],
+  [/subah[\s,-]*(aur\s+)?shaam|twice|\bbd\b|do baar|दो बार|सुबह.{0,8}शाम|morning (and|&) (evening|night)|1-0-1/, 'BD (1-0-1)'],
+  [/raat|night|bedtime|sone se pehle|\bhs\b|रात|सोने से पहले|0-0-1/, 'HS (0-0-1)'],
+  [/ek baar|once|\bod\b|\broz\b|daily|subah|रोज़|रोज|एक बार|सुबह|1-0-0/, 'OD (1-0-0)'],
+];
+const TIMING = [
+  [/khaa?ne ke baad|after (food|meal)|खाने के बाद|bhojan ke baad|nashte ke baad/, 'After food'],
+  [/khaa?ne se pehle|khaa?li pet|before (food|meal)|empty stomach|खाने से पहले|खाली पेट/, 'Before food'],
+  [/sone se pehle|bedtime|सोने से पहले/, 'At bedtime'],
+  [/lagaiye|lagana|apply|लगाइए|लगाना|maalish|massage/, 'Local application'],
+];
+
+function extractMeds(text) {
+  const out = [];
+  const matches = [...text.matchAll(MED_RE)].filter(m => {
+    const nameRaw = m[2].trim(); const first = nameRaw.split(/[\s+]/)[0].toLowerCase();
+    return !MED_STOP.has(first) && nameRaw.replace(/[^\p{L}]/gu, '').length >= 4;
+  });
+  matches.forEach((m, i) => {
+    const nameRaw = m[2].trim();
+    const prefix = medPrefix(m[1]);
+    const strength = m[3] ? m[3] + (m[4] ? m[4].toLowerCase().replace(/एमजी|मिलीग्राम/, 'mg') : 'mg') : '';
+    const end = m.index + m[0].length;
+    const next = matches[i + 1] ? matches[i + 1].index : text.length;
+    let ctx = text.slice(end, Math.min(next, end + 170)); ctx = ctx.split('\n')[0].toLowerCase();
+    let freq = ''; for (const [re, v] of FREQ) if (re.test(ctx)) { freq = v; break; }
+    let timing = ''; for (const [re, v] of TIMING) if (re.test(ctx)) { timing = v; break; }
+    if (prefix === 'Inj' && !timing && /joint|ghutne mein|intra[- ]?articular|घुटने में/.test(ctx)) timing = 'Intra-articular';
+    let duration = '';
+    for (const d of ctx.matchAll(durRe())) {
+      const after = ctx.slice(d.index + d[0].length, d.index + d[0].length + 12);
+      if (/^\s*(ke\s+)?(baad|बाद|later|after)/.test(after)) continue;
+      duration = durText(numOf(d[1]), unitOf(d[2])); break;
+    }
+    const name = `${prefix} ${/[a-z]/i.test(nameRaw) ? titleCase(nameRaw.replace(/\s*plus\s*/i, '+')) : nameRaw}${strength ? ' ' + strength : ''}`;
+    if (out.some(o => o.name.toLowerCase() === name.toLowerCase())) return;
+    out.push({ name, frequency: freq, timing, duration });
+  });
+  return out;
+}
+
+const PH = [
+  [/diabetes|sugar|madhumeh|शुगर|डायबिटीज|मधुमेह/i, 'Diabetes mellitus', 'No diabetes'],
+  [/\bbp\b|blood pressure|hypertension|बीपी|ब्लड प्रेशर/i, 'Hypertension', 'No hypertension'],
+  [/thyroid|थायराइड/i, 'Thyroid disorder', 'No thyroid disorder'],
+  [/asthma|\bdama\b|दमा/i, 'Asthma', 'No asthma'],
+  [/operation|surgery|ऑपरेशन/i, 'Previous surgery', 'No previous surgery'],
+  [/\bchot\b|injury|gir gay|gir gaya|giri thi|\bfall\b|fisal|चोट/i, 'History of trauma / fall', 'No history of trauma'],
+];
+const ADV = [
+  [/quadriceps|quads/, 'Quadriceps strengthening exercises', 'ex'],
+  [/pendulum/, 'Pendulum exercises', 'ex'],
+  [/wall climb|finger ladder/, 'Wall-climbing (finger ladder) exercises', 'ex'],
+  [/isometric/, 'Isometric strengthening exercises', 'ex'],
+  [/physio|फिजियो/, 'Physiotherapy', 'ex'],
+  [/exercise|kasrat|vyayam|व्यायाम|एक्सरसाइज/, 'Regular prescribed exercises', 'gen'],
+  [/garam|sikai|hot fomentation|गरम|सिकाई|सेक/, 'Hot fomentation'],
+  [/barf|ice pack|बर्फ/, 'Ice pack application'],
+  [/seedhi|sidhi|stairs|सीढ़ी/, 'Avoid / minimise climbing stairs'],
+  [/palthi|squat|zameen par|floor par|पालथी/, 'Avoid squatting & cross-legged sitting'],
+  [/western toilet|commode/, 'Use western toilet'],
+  [/vajan kam|weight (kam|loss|reduc)|वजन कम/, 'Weight reduction'],
+  [/bhaari|heavy|vajan mat uth|vajan na uth|भारी/, 'Avoid lifting heavy weights'],
+  [/belt/, 'Use lumbar support belt'],
+  [/knee cap|knee brace/, 'Use knee cap / brace'],
+  [/collar/, 'Use cervical collar'],
+  [/takiya|pillow|तकिया/, 'Use a thin pillow'],
+  [/posture/, 'Maintain correct posture'],
+  [/break le|break lijiye|breaks/, 'Take regular breaks from desk / screen work'],
+  [/aaram|\brest\b|आराम/, 'Adequate rest'],
+];
+const ADV_TEMPLATE = {
+  knee: ['Quadriceps strengthening exercises', 'Hot fomentation', 'Avoid squatting & cross-legged sitting'],
+  'low back': ['Avoid lifting heavy weights', 'Hot fomentation', 'Back strengthening exercises once pain settles'],
+  shoulder: ['Pendulum exercises', 'Hot fomentation'],
+  neck: ['Maintain correct posture', 'Use a thin pillow', 'Isometric neck exercises'],
+};
+const IMPERATIVE = /(iye|ijiye|ie|iyega)(?![a-z])|\bmat\b|avoid|\bkare(n|in)?\b|करें|कीजिए|िए(?![\p{L}])|मत|should|must|please|use kar/iu;
+
+function extractNote(transcript, patient) {
+  const text = String(transcript || '');
+  const sents = sentencesOf(text);
+  const stmts = sents.filter(s => !isQ(s));
+  const low = text.toLowerCase();
+  const note = {
+    patientName: patient ? patient.name : '', ageGender: patient ? `${patient.age} / ${patient.gender}` : '',
+    chiefComplaint: '', painDetails: '', pastHistory: '', examination: '', investigation: '', diagnosis: '',
+    medicines: [], advice: '', adviceTemplated: false, followUpDate: '', followUpNote: '', fee: String(S.settings.fee),
+  };
+  if (!text.trim()) { note.chiefComplaint = patient ? patient.complaint : ''; return note; }
+
+  // ---- Chief complaint & pain details
+  let ccSent = stmts.find(s => partOf(s) && PAIN_WORD.test(s)) || stmts.find(s => partOf(s));
+  const part = ccSent ? partOf(ccSent) : null;
+  const side = ccSent ? sideOf(ccSent) : '';
+  let duration = '';
+  const isHist = s => PH.some(([re]) => re.test(s));
+  const durCands = [...stmts.filter(s => PAIN_WORD.test(s) || partOf(s)), ...stmts.filter(s => !isHist(s))];
+  for (const s of durCands) {
+    const l = s.toLowerCase();
+    for (const d of l.matchAll(durRe())) {
+      const after = l.slice(d.index + d[0].length, d.index + d[0].length + 14);
+      const before = l.slice(Math.max(0, d.index - 12), d.index);
+      if (/^\s*(se\b|से|ho gay|hua|hue|tak se|since)/.test(after) || /(since|for|pichhle|पिछले)\s*$/.test(before)) { duration = durText(numOf(d[1]), unitOf(d[2])); break; }
+    }
+    if (duration) break;
+  }
+  const symText = stmts.join(' \n ').toLowerCase();
+  const radiation = /(pair|leg|taang|पैर|टांग)[^.\n]{0,25}(tak|neeche|niche|jaata|jata|jaati|aata|फैल|जाता)|radiat/.test(symText);
+  const radSide = radiation ? sideOf((stmts.find(s => /(pair|leg|taang|पैर)/i.test(s)) || '')) : '';
+  const stiffness = /akdan|akda|akad|stiff|jakad|जकड़|अकड़/.test(symText);
+  const overhead = /haath upar|upar nahi uth|overhead|arm up|हाथ ऊपर/.test(symText);
+  if (part) {
+    let cc;
+    if (part.k === 'back') cc = 'Low back pain' + (radiation ? ` radiating to ${radSide ? radSide.toLowerCase() + ' ' : ''}leg` : '');
+    else cc = `${side ? side + ' ' : ''}${part.label} pain`;
+    if (stiffness && part.k !== 'back') cc += ' and stiffness';
+    if (overhead) cc += ' with difficulty raising arm';
+    if (duration) cc += ` since ${duration}`;
+    note.chiefComplaint = cap(cc.trim());
+  } else if (patient) note.chiefComplaint = patient.complaint;
+
+  const pd = [];
+  if (duration) pd.push(`Duration: ${duration}`);
+  if (part) pd.push(`Site: ${side && part.k !== 'back' ? side + ' ' : ''}${part.label}`);
+  if (radiation) pd.push(`Radiation: to ${radSide ? radSide.toLowerCase() + ' ' : ''}leg`);
+  const sc = symText.match(/(\d{1,2})\s*(out of|mein se|\/)\s*10/); if (sc) pd.push(`Pain score: ${sc[1]}/10`);
+  const agg = [];
+  if (/seedhi|sidhi|stairs|सीढ़ी/.test(symText)) agg.push('climbing stairs');
+  if (/baithne se uth|uthne mein|sitting to standing|उठने/.test(symText)) agg.push('rising from sitting');
+  if (/der (tak )?baith|lambe samay|prolonged sitting|zyada der baith/.test(symText)) agg.push('prolonged sitting');
+  if (/chalne|walking|चलने/.test(symText)) agg.push('walking');
+  if (/let nahi|us taraf let|lying on/.test(symText)) agg.push('lying on affected side');
+  if (agg.length) pd.push(`Aggravated by: ${agg.join(', ')}`);
+  if (/subah[^.\n]{0,30}(akad|akda|stiff|jakad)|morning stiffness/.test(symText)) pd.push('Morning stiffness present');
+  else if (stiffness) pd.push('Stiffness present');
+  if (/raat (ko )?(dard|pain)|night pain|raat ko dard|raat[^.\n]{0,12}zyada/.test(symText) || /raat ko dard zyada/.test(low)) pd.push('Night pain');
+  if (/jhunjhuni|sunn|numb|tingling|झुनझुनी|सुन्न/.test(symText)) pd.push('Tingling / numbness reported');
+  if (/(sujan|swelling|सूजन)/.test(symText) && !/(sujan|swelling)[^.\n]{0,12}(nahi|no)/.test(symText)) pd.push('Swelling reported');
+  if (/(bhaari|heavy)[^.\n]{0,40}(uthay|uthaa|lift)/.test(symText)) pd.push('Onset after lifting heavy weight');
+  if (overhead) pd.push('Difficulty raising arm overhead');
+  note.painDetails = pd.join('\n');
+
+  // ---- Past history (with negation)
+  const ph = [];
+  for (const [re, pos, neg] of PH) {
+    for (const s of stmts) {
+      const l = s.toLowerCase(); const m = l.match(new RegExp(re.source, 'i'));
+      if (!m) continue;
+      if (/examination|x-?ray|mri|lag raha|common hai/.test(l)) continue;
+      ph.push(negatedAfter(l, m.index + m[0].length, m.index) ? neg : pos); break;
+    }
+  }
+  if (!ph.length && /koi (bimari|bimaari|problem) nahi|no (other )?(illness|comorbid)|कोई बीमारी नहीं/.test(low)) ph.push('No significant past history');
+  note.pastHistory = uniq(ph).join('\n');
+
+  // ---- Examination
+  const ex = [];
+  const STOPW = new Set(['mein', 'me', 'hai', 'aur', 'par', 'pe', 'ki', 'ka', 'ke', 'the', 'examination', 'on', 'there', 'is', 'bhi', 'check', 'karta', 'hoon', 'main', 'ok', 'theek']);
+  for (const s of stmts) {
+    const l = s.toLowerCase();
+    const t = l.match(/((?:[a-z]+\s+){0,4})tenderness/);
+    if (t) { const w = t[1].trim().split(/\s+/).filter(Boolean); while (w.length && STOPW.has(w[0])) w.shift(); ex.push(cap((w.join(' ') + ' tenderness').trim()) + (/dono taraf|both sides|bilateral/.test(l) && !/bilateral/.test(w.join(' ')) ? ' (bilateral)' : '')); }
+    if (/crepitus|katkat|kat-kat/.test(l)) ex.push(/bilateral crepitus|crepitus[^.,]{0,15}(dono|both|bilateral)/.test(l) ? 'Bilateral crepitus' : 'Crepitus present');
+    const sp = l.match(/(paraspinal|paravertebral|trapezius|muscle)?\s*spasm/); if (sp) ex.push(cap(((sp[1] || 'muscle') + ' spasm')));
+    const slr = l.match(/slr[^.]{0,40}?(\d{2})\s*(degree|deg|°)/);
+    if (slr) ex.push(`SLR positive at ${slr[1]}°${sideOf(l) && sideOf(l) !== 'Bilateral' ? ' (' + sideOf(l).toLowerCase() + ')' : ''}`);
+    else if (/slr[^.]{0,15}(negative|normal)/.test(l)) ex.push('SLR negative');
+    for (const r of l.matchAll(/(flexion|extension|abduction|adduction|external rotation|internal rotation)[^.,]{0,25}?(\d{2,3})\s*(degree|deg|°)/g)) ex.push(`${cap(r[1])} up to ${r[2]}°`);
+    for (const r of l.matchAll(/(external rotation|internal rotation|rom|range of motion|neck movements?|movements?)[^.,]{0,18}?(kam|restricted|limited|painful|reduced)/g)) {
+      const what = r[1] === 'rom' ? 'ROM' : cap(r[1]);
+      ex.push(`${what} ${r[2] === 'painful' ? 'painful' : 'restricted'}`);
+    }
+    const df = l.match(/(varus|valgus|flexion)\s+deformity/); if (df) ex.push(cap(df[1]) + ' deformity');
+    if (/painful arc/.test(l)) ex.push(/painful arc[^.,]{0,10}(nahi|no|absent)|no painful arc/.test(l) ? 'No painful arc' : 'Painful arc present');
+    if (/power[^.,]{0,15}(normal|theek|5\/5)/.test(l)) ex.push('Motor power normal');
+    if (/neuro(logical)? deficit[^.,]{0,10}(nahi|no|absent)|no neuro/.test(l)) ex.push('No neurological deficit');
+    if (/reflex[^.,]{0,15}(normal|theek)/.test(l)) ex.push('Reflexes normal');
+    if (/effusion/.test(l) && !/effusion[^.,]{0,12}(nahi|no)|no effusion/.test(l)) ex.push('Effusion present');
+  }
+  note.examination = uniq(ex).join('\n');
+
+  // ---- Investigation
+  const inv = [];
+  const regionOf = s => { const p = partOf(s); if (!p) return ''; const sd = sideOf(s);
+    if (p.k === 'back') return 'LS spine'; if (p.k === 'neck') return 'cervical spine'; return `${sd && sd !== 'Bilateral' ? sd.toLowerCase() + ' ' : sd === 'Bilateral' ? 'both ' : ''}${p.label}${sd === 'Bilateral' ? 's' : ''}`; };
+  const ADVISED = /karwa|karva|karaiye|karvaiye|kara lijiye|karaa|करवा|कराइए|get (an? )?|advis|needed|chahiye/;
+  for (const s of stmts) {
+    const l = s.toLowerCase();
+    if (/x[- ]?ray|xray|एक्स[- ]?रे|एक्सरे/.test(l) && !(/report ke saath|report lekar|report le ke/.test(l) && !ADVISED.test(l))) {
+      const reg = regionOf(s) || (part ? (part.k === 'back' ? 'LS spine' : part.k === 'neck' ? 'cervical spine' : part.label) : '');
+      if (ADVISED.test(l)) inv.push(`X-ray ${reg} — advised`.replace(/\s+/g, ' '));
+      else {
+        const f = []; const g = l.match(/grade\s*(\d|iv|iii|ii|i)\b/); if (g) f.push('KL Grade ' + g[1].toUpperCase());
+        if (/joint space[^.,]{0,25}(kam|reduced|narrow)/.test(l)) f.push('reduced joint space');
+        if (/osteophyte/.test(l)) f.push('osteophytes');
+        inv.push(`X-ray ${reg} (reviewed): ${f.join(', ') || 'see report'}`.replace(/\s+/g, ' '));
+      }
+    }
+    if (/\bmri\b|एमआरआई/.test(l)) {
+      const reg = regionOf(s) || (part ? (part.k === 'back' ? 'LS spine' : part.k === 'neck' ? 'cervical spine' : part.label) : '');
+      if (/report ke saath|report lekar|report le ke/.test(l) && !ADVISED.test(l)) continue;
+      inv.push(ADVISED.test(l) ? `MRI ${reg} — advised` : `MRI ${reg} (reviewed)`);
+    }
+    const tests = []; const T = { cbc: 'CBC', esr: 'ESR', crp: 'CRP', 'uric acid': 'Serum uric acid', 'vitamin d': 'Vitamin D3', 'vit d': 'Vitamin D3', 'ra factor': 'RA factor', hba1c: 'HbA1c', 'rbs': 'RBS', 'calcium level': 'Serum calcium', 'thyroid profile': 'Thyroid profile' };
+    for (const k in T) if (l.includes(k)) tests.push(T[k]);
+    if (tests.length) inv.push(`Blood tests: ${uniq(tests).join(', ')}${ADVISED.test(l) ? ' — advised' : ''}`);
+  }
+  note.investigation = uniq(inv).join('\n');
+
+  // ---- Diagnosis (only if spoken)
+  const dx = [];
+  const grade = (low.match(/grade\s*(\d|iv|iii|ii|i)\b/) || [])[1];
+  const DX = [
+    [/osteo ?arthritis|(?<![a-z])oa(?![a-z])|गठिया|ghisaav|ghisav/, () => `${side ? side + ' ' : ''}${part && part.k !== 'back' ? part.label : 'knee'} osteoarthritis${grade ? ` (KL Grade ${grade.toUpperCase()})` : ''}`],
+    [/radiculopathy/, () => `${part && part.k === 'neck' ? 'Cervical' : 'Lumbar'} radiculopathy${radSide ? ` (${radSide.toLowerCase()})` : ''}`],
+    [/sciatica/, () => 'Sciatica'],
+    [/pivd|slip ?disc|disc (bulge|prolapse|herniation)/, () => 'PIVD (suspected)'],
+    [/frozen shoulder|adhesive capsulitis/, () => `Adhesive capsulitis (frozen shoulder)${side && side !== 'Bilateral' ? ' — ' + side.toLowerCase() : ''}`],
+    [/rotator cuff|supraspinatus/, () => 'Rotator cuff tendinopathy'],
+    [/impingement/, () => 'Shoulder impingement'],
+    [/spondylosis/, () => `${part && part.k === 'back' ? 'Lumbar' : 'Cervical'} spondylosis`],
+    [/mechanical (neck|back) pain/, m => `Mechanical ${m[1]} pain`],
+    [/tennis elbow|lateral epicondylitis/, () => 'Lateral epicondylitis (tennis elbow)'],
+    [/plantar fasciitis/, () => 'Plantar fasciitis'],
+    [/\bgout\b/, () => 'Gout'],
+    [/sprain|\bmoch\b|मोच/, () => 'Sprain'],
+    [/fracture/, () => 'Fracture (to be confirmed)'],
+  ];
+  for (const [re, fn] of DX) {
+    for (const s of stmts) {
+      const l = s.toLowerCase(); const m = l.match(re);
+      if (!m) continue;
+      if (negatedAfter(l, m.index + m[0].length, m.index)) continue;
+      dx.push(fn(m)); break;
+    }
+  }
+  note.diagnosis = uniq(dx).map(cap).join('\n');
+
+  // ---- Medicines (strictly from transcript)
+  note.medicines = extractMeds(text);
+
+  // ---- Advice
+  const adv = []; let specificEx = false;
+  for (const s of stmts) {
+    const l = s.toLowerCase();
+    if (!IMPERATIVE.test(l)) continue;
+    if (MED_RE.test(s)) { MED_RE.lastIndex = 0; continue; } MED_RE.lastIndex = 0;
+    for (const [re, label, kind] of ADV) {
+      if (!re.test(l)) continue;
+      if (kind === 'gen' && specificEx) continue;
+      if (kind === 'ex') specificEx = true;
+      if (label === 'Avoid / minimise climbing stairs' && /seedhi chadhne mein\??$/.test(l)) continue;
+      adv.push(label);
+    }
+  }
+  if (adv.length) note.advice = uniq(adv).join('\n');
+  else if (part && ADV_TEMPLATE[part.label]) { note.advice = ADV_TEMPLATE[part.label].join('\n'); note.adviceTemplated = true; }
+
+  // ---- Follow-up
+  let fu = null;
+  for (const d of low.matchAll(durRe())) {
+    const after = low.slice(d.index + d[0].length, d.index + d[0].length + 14);
+    const before = low.slice(Math.max(0, d.index - 10), d.index);
+    if (/^\s*(ke\s+)?(baad|बाद|later)/.test(after) || /(after|in)\s+$/.test(before) && /follow|review|come|aaiye/.test(low.slice(d.index - 40, d.index + 40))) fu = d;
+  }
+  if (fu) { const n = numOf(fu[1]), u = unitOf(fu[2]); note.followUpDate = isoDate(addDur(n, u)); note.followUpNote = `After ${durText(n, u)}`; }
+  return note;
+}
+
+function soapOf(n) {
+  const medLines = n.medicines.filter(m => m.name).map(m => `${m.name}${m.frequency ? ' — ' + m.frequency : ''}${m.timing ? ', ' + m.timing : ''}${m.duration ? ' × ' + m.duration : ''}${hasSuggest(m) ? ' [dose not confirmed]' : ''}`);
+  const fu = n.followUpDate ? `Follow-up: ${fmtDate(n.followUpDate + 'T00:00')}${n.followUpNote ? ' (' + n.followUpNote + ')' : ''}` : '';
+  const advised = n.investigation.split('\n').filter(x => /advised/.test(x));
+  const reviewed = n.investigation.split('\n').filter(x => x && !/advised/.test(x));
+  return {
+    S: [n.chiefComplaint && 'CC: ' + n.chiefComplaint, n.painDetails, n.pastHistory && 'Past history: ' + n.pastHistory.replace(/\n/g, '; ')].filter(Boolean).join('\n'),
+    O: [n.examination && 'O/E: ' + n.examination.replace(/\n/g, '; '), ...reviewed].filter(Boolean).join('\n'),
+    A: n.diagnosis,
+    P: [medLines.length ? 'Rx:\n' + medLines.map((l, i) => `  ${i + 1}. ${l}`).join('\n') : '', advised.length ? 'Investigations: ' + advised.join('; ') : '', n.advice && 'Advice: ' + n.advice.replace(/\n/g, '; '), fu].filter(Boolean).join('\n'),
+  };
+}
+
+/* =========================================================
+   Scripted dialogues (simulation + sample data)
+   ========================================================= */
+const D = 'Doctor', P = 'Patient';
+const SAMPLE_TX = {
+  ramesh: [
+    [D, 'Aaiye Patil ji, baithiye. Kya takleef hai?'],
+    [P, 'Doctor, mera right ghutna bahut dard kar raha hai. 2 hafte se.'],
+    [D, 'Dard kab zyada hota hai? Seedhi chadhne mein?'],
+    [P, 'Haan, seedhi chadhne mein dard badhta hai aur subah uthne par ghutna akda rehta hai.'],
+    [D, 'Koi chot lagi thi? Sugar ya BP hai?'],
+    [P, 'Chot nahi lagi. BP hai, uski goli leta hoon. Sugar nahi hai.'],
+    [D, 'Theek hai, main check karta hoon. Examination mein medial joint line tenderness hai, crepitus present hai, ROM painful hai, flexion 110 degree tak.'],
+    [D, 'X-ray mein medial joint space kam hai, Grade 2 osteoarthritis hai.'],
+    [D, 'Main aapko dawai deta hoon — Tab Aceclofenac 100mg subah shaam khaane ke baad, 10 din ke liye.'],
+    [D, 'Cap Diacerein 50mg raat ko khaane ke baad, 3 mahine.'],
+    [D, 'Tab Calcium+D3 roz ek, 3 mahine.'],
+    [D, 'Quadriceps exercise roz kijiye, garam paani ki sikai kijiye, aur palthi maar ke mat baithiye.'],
+    [D, '2 hafte baad follow-up ke liye aaiye.'],
+    [P, 'Theek hai doctor, dhanyavaad.'],
+  ],
+  sunita: [
+    [D, 'Namaste Sharma ji, bataiye kya problem hai?'],
+    [P, 'Doctor, kamar mein dard hai jo left pair mein neeche tak jaata hai. 2 hafte se.'],
+    [D, 'Pair mein jhunjhuni ya sunnpan hota hai?'],
+    [P, 'Haan, left pair mein jhunjhuni hoti hai. Zyada der baithne se dard badhta hai.'],
+    [D, 'Koi bhaari saaman uthaya tha?'],
+    [P, 'Haan, ghar mein bhaari balti uthayi thi, tab se dard hai.'],
+    [D, 'Sugar, BP, thyroid?'],
+    [P, 'Thyroid hai, uski goli leti hoon.'],
+    [D, 'Examination mein paraspinal spasm hai, SLR left side 40 degree pe positive hai. Power normal hai.'],
+    [D, 'Yeh lumbar radiculopathy lag raha hai. MRI lumbar spine karwa lijiye.'],
+    [D, 'Tab Pregabalin 75mg raat ko sone se pehle, 1 mahina.'],
+    [D, 'Tab Etoricoxib 90mg ek baar khaane ke baad, 7 din.'],
+    [D, 'Bhaari vajan mat uthaiye, garam sikai kijiye, aur lumbar belt pehniye.'],
+    [D, 'MRI report ke saath 1 hafte baad aaiye.'],
+  ],
+  anil: [
+    [D, 'Deshmukh ji, aaiye. Kaisa hai ghutnon ka dard?'],
+    [P, 'Doctor, dono ghutne mein dard hai, 6 mahine se. Seedhi chadhna bahut mushkil ho gaya hai.'],
+    [D, 'Zameen par baith paate hain?'],
+    [P, 'Nahi, palthi nahi maar paata. Baithne se uthne mein bhi dard hota hai.'],
+    [D, 'Sugar hai?'],
+    [P, 'Haan, sugar hai, uski dawai chal rahi hai.'],
+    [D, 'Examination mein bilateral crepitus hai, varus deformity hai, medial joint line tenderness dono taraf.'],
+    [D, 'X-ray mein dono ghutno mein Grade 3 osteoarthritis hai, joint space kaafi kam hai.'],
+    [D, 'Inj Hyaluronic Acid ek injection dono ghutne mein, single dose.'],
+    [D, 'Tab Aceclofenac+Paracetamol subah shaam khaane ke baad, 2 hafte.'],
+    [D, 'Tab Glucosamine 1500mg roz ek, 3 mahine.'],
+    [D, 'Vajan kam kijiye, seedhi kam chadhiye, western toilet use kijiye, aur physiotherapy shuru kijiye.'],
+    [D, '4 hafte baad follow-up.'],
+  ],
+};
+const SIM_SCRIPTS = {
+  knee: [
+    [D, 'Aaiye, baithiye. Kya takleef hai?'],
+    [P, 'Doctor, mera right ghutna bahut dard kar raha hai. 3 hafte se.'],
+    [D, 'Chalne mein ya seedhi chadhne mein dard badhta hai?'],
+    [P, 'Haan, seedhi chadhne mein bahut dard hota hai, aur subah ghutna akda rehta hai.'],
+    [D, 'Sugar ya BP?'],
+    [P, 'Nahi, sugar BP kuch nahi hai.'],
+    [D, 'Examination mein medial joint line tenderness hai, crepitus present hai, ROM painful hai.'],
+    [D, 'X-ray right knee standing AP lateral karwa lijiye.'],
+    [D, 'Main aapko dawai deta hoon — Tab Aceclofenac 100mg subah shaam khaane ke baad, 10 din.'],
+    [D, 'Tab Pantoprazole 40mg subah khaali pet, 10 din.'],
+    [D, 'Quadriceps exercise roz kijiye aur garam sikai kijiye. Palthi maar ke mat baithiye.'],
+    [D, 'X-ray report ke saath 1 hafte baad aaiye.'],
+  ],
+  back: [
+    [D, 'Namaste, bataiye kya problem hai?'],
+    [P, 'Doctor, kamar mein dard hai, right pair mein neeche tak jaata hai. 10 din se.'],
+    [D, 'Pair mein jhunjhuni hoti hai?'],
+    [P, 'Haan thodi jhunjhuni hoti hai. Zyada der baithne se dard badhta hai.'],
+    [D, 'Koi chot ya girne ki history?'],
+    [P, 'Nahi, chot nahi lagi.'],
+    [D, 'Examination mein paraspinal spasm hai, SLR right side 50 degree pe positive hai, power normal hai.'],
+    [D, 'Yeh lumbar radiculopathy lag raha hai. MRI lumbar spine karwa lijiye.'],
+    [D, 'Tab Pregabalin 75mg raat ko sone se pehle, 2 hafte.'],
+    [D, 'Tab Etoricoxib 90mg ek baar khaane ke baad, 7 din.'],
+    [D, 'Bhaari vajan mat uthaiye, garam sikai kijiye, lumbar belt pehniye.'],
+    [D, '2 hafte baad follow-up ke liye aaiye.'],
+  ],
+  shoulder: [
+    [D, 'Aaiye, kya hua kandhe ko?'],
+    [P, 'Doctor, right kandhe mein dard hai, haath upar nahi uthta. 1 mahine se.'],
+    [D, 'Raat ko dard zyada hota hai?'],
+    [P, 'Haan, raat ko dard zyada hota hai, us taraf let nahi paata.'],
+    [D, 'Sugar hai?'],
+    [P, 'Haan, sugar hai 5 saal se.'],
+    [D, 'Examination mein abduction 90 degree tak hai, external rotation restricted hai, painful arc nahi hai.'],
+    [D, 'Yeh frozen shoulder hai. X-ray right shoulder karwa lijiye.'],
+    [D, 'Tab Etoricoxib 60mg ek baar khaane ke baad, 10 din.'],
+    [D, 'Tab Pantoprazole 40mg subah khaali pet, 10 din.'],
+    [D, 'Pendulum exercise aur wall climbing exercise roz kijiye, garam sikai bhi kijiye.'],
+    [D, '3 hafte baad aaiye.'],
+  ],
+  neck: [
+    [D, 'Bataiye, kya takleef hai?'],
+    [P, 'Doctor, gardan mein dard aur akdan hai, 10 din se. Computer pe kaam karti hoon.'],
+    [D, 'Haath mein jhunjhuni?'],
+    [P, 'Nahi, sirf gardan aur kandhe ke upar dard hai.'],
+    [D, 'Examination mein trapezius spasm hai, neck movements painful hain, neuro deficit nahi hai.'],
+    [D, 'Yeh mechanical neck pain hai, posture ki wajah se.'],
+    [D, 'Tab Thiocolchicoside 4mg subah shaam khaane ke baad, 5 din.'],
+    [D, 'Gel Diclofenac din mein teen baar lagaiye.'],
+    [D, 'Patla takiya use kijiye, posture theek rakhiye, har ghante break lijiye, aur isometric exercise kijiye.'],
+    [D, '2 hafte baad follow-up.'],
+  ],
+};
+function scriptFor(p) {
+  const c = (p.complaint || '').toLowerCase();
+  if (/shoulder|kandh/.test(c)) return SIM_SCRIPTS.shoulder;
+  if (/neck|gardan|cervical/.test(c)) return SIM_SCRIPTS.neck;
+  if (/back|kamar|lumbar|sciatica|spine/.test(c)) return SIM_SCRIPTS.back;
+  return SIM_SCRIPTS.knee;
+}
+const txToText = arr => arr.map(([s, t]) => `${s}: ${t}`).join('\n');
+
+/* ---------------- Seed data ---------------- */
+function seed() {
+  const ago = (days, mins = 0) => { const d = new Date(Date.now() - mins * 60000); d.setDate(d.getDate() - days); return d; };
+  const todayAt = mins => { const sod = new Date(); sod.setHours(0, 1, 0, 0); return new Date(Math.max(sod.getTime(), Date.now() - mins * 60000)); };
+  const mk = (name, age, gender, phone, complaint, regDays) => ({ id: uid('p'), name, age, gender, phone, complaint, registered: ago(regDays, 300) });
+  S.patients = [
+    mk('Ramesh Patil', 58, 'M', '98220 41736', 'Right knee pain since 2 weeks', 14),
+    mk('Sunita Sharma', 45, 'F', '97650 18254', 'Lower back pain radiating to left leg since 2 weeks', 9),
+    mk('Anil Deshmukh', 62, 'M', '90040 77312', 'Bilateral knee pain, difficulty climbing stairs', 30),
+    mk('Priya Joshi', 35, 'F', '88790 52107', 'Neck pain and stiffness', 2),
+    mk('Manoj Gupta', 50, 'M', '93230 66481', 'Right shoulder pain, restricted movement', 1),
+  ];
+  const [ram, sun, ani] = S.patients;
+  const mkC = (p, tx, date, status, dur) => {
+    const text = txToText(tx); const note = extractNote(text, p); note.fee = '500';
+    const fuBase = new Date(date);
+    if (note.followUpNote) { const m = note.followUpNote.match(/(\d+) (\w+?)s?$/); if (m) note.followUpDate = isoDate(addDur(+m[1], m[2], fuBase)); }
+    return { id: uid('c'), patientId: p.id, date, durationSec: dur, mode: 'Simulation', lang: 'hi-IN', transcript: text, note, status, createdBy: 'Dr. Patil', approvedBy: status === 'approved' ? 'Dr. Patil' : '', approvedAt: status === 'approved' ? new Date(date.getTime() + 6 * 60000) : null };
+  };
+  S.consultations = [
+    mkC(ani, SAMPLE_TX.anil, ago(3, 200), 'approved', 412),
+    mkC(ram, SAMPLE_TX.ramesh, todayAt(130), 'approved', 386),
+    mkC(sun, SAMPLE_TX.sunita, todayAt(40), 'draft', 351),
+  ];
+  const sys = { user: 'Reception', role: 'Receptionist' };
+  const doc = { user: 'Dr. Patil', role: 'Doctor' };
+  const ev = [];
+  S.patients.forEach(p => ev.push(['register', `Registered ${p.name} (${p.age}/${p.gender})`, sys, p.registered]));
+  S.consultations.forEach(c => {
+    const p = getP(c.patientId);
+    ev.push(['record', `Recorded consultation for ${p.name} (${mmss(c.durationSec)})`, doc, c.date]);
+    ev.push(['generate', `AI draft generated for ${p.name} — ${c.note.medicines.length} medicines extracted`, doc, new Date(c.date.getTime() + 60000)]);
+    if (c.status === 'approved') ev.push(['approve', `Approved note for ${p.name} (consent confirmed)`, doc, c.approvedAt]);
+  });
+  ev.sort((a, b) => a[3] - b[3]).forEach(([t, d, who, ts]) => audit(t, d, { user: who.user, role: who.role, ts }));
+}
+
+/* =========================================================
+   Router & shell
+   ========================================================= */
+const ROOTS = ['dashboard', 'patients', 'audit', 'settings'];
+function show(screen, params = {}, push = true) {
+  if (push && S.screen !== 'login') S.history.push({ screen: S.screen, params: S.params });
+  S.screen = screen; S.params = params; render(); window.scrollTo(0, 0);
+}
+App = window.App = {};
+App.nav = screen => { if (S.rec) return; S.history = []; S.dashFilter = S.dashFilter; show(screen, {}, false); };
+App.back = () => {
+  if (S.screen === 'recording') return App.discardRecording();
+  const h = S.history.pop();
+  if (h) { S.screen = h.screen; S.params = h.params; render(); window.scrollTo(0, 0); } else App.nav('dashboard');
+};
+
+const TITLES = { dashboard: 'MedScribe AI', patients: 'Patients', select: 'Select Patient', recording: 'Recording', review: 'Review Note', patient: 'Patient Details', audit: 'Audit Log', settings: 'Settings' };
+function render() {
+  const sc = S.screen; const loggedIn = !!S.user && sc !== 'login';
+  $('#appbar').classList.toggle('hidden', !loggedIn);
+  $('#nav').classList.toggle('hidden', !loggedIn || sc === 'recording');
+  $('#view').classList.toggle('no-nav', !loggedIn || sc === 'recording');
+  const isRoot = ROOTS.includes(sc);
+  $('#backBtn').classList.toggle('hidden', isRoot);
+  $('#brandMark').classList.toggle('hidden', !isRoot);
+  $('#appTitle').innerHTML = esc(TITLES[sc] || 'MedScribe AI') + `<span class="sub">${sc === 'dashboard' ? 'Parasnath Speciality Clinic, Badlapur' : esc(displayName(S.user) + ' · ' + (S.user ? S.user.role : ''))}</span>`;
+  $('#appbarRight').innerHTML = sc === 'patients' ? `<button class="btn btn-primary btn-sm" onclick="App.addPatient()">+ Add</button>` : sc === 'dashboard' ? `<div class="avatar" style="width:36px;height:36px;font-size:13px;background:hsl(${hue(S.user?.name || '')} 45% 40%)" title="${esc(displayName(S.user))}">${esc(initials(S.user?.name))}</div>` : '';
+  document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.nav === (isRoot ? sc : sc === 'patient' || sc === 'select' ? 'patients' : sc === 'review' ? 'dashboard' : '')));
+  const view = $('#view');
+  view.style.animation = 'none'; void view.offsetWidth; view.style.animation = '';
+  view.innerHTML = (SCREENS[sc] || SCREENS.dashboard)();
+  if (AFTER[sc]) AFTER[sc]();
+}
+
+/* =========================================================
+   Screens
+   ========================================================= */
+const SCREENS = {}; const AFTER = {};
+
+/* ---- 1. Login ---- */
+SCREENS.login = () => `
+<div class="login-wrap"><div class="login-card">
+  <div class="login-logo"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12h3l3-7 4 14 3-7h5"/></svg></div>
+  <h1 style="text-align:center;font-size:28px">MedScribe AI</h1>
+  <p class="muted" style="text-align:center;margin:4px 0 22px">Ambient clinical scribe · Parasnath Speciality Clinic</p>
+  <form class="card" onsubmit="App.login(event)" style="padding:20px">
+    <label class="field"><span>Username</span><input class="input" id="lgUser" autocomplete="username" placeholder="e.g. Patil" required></label>
+    <label class="field"><span>Role</span>
+      <select class="input" id="lgRole"><option>Doctor</option><option>Receptionist</option></select></label>
+    <button class="btn btn-primary btn-block btn-lg" type="submit">Sign In</button>
+    <p class="tiny muted" style="text-align:center;margin-top:12px">Demo build · data stays in this browser tab only</p>
+  </form>
+  <p class="tiny muted" style="text-align:center;margin-top:16px">by Revonix.Solution · v${VERSION}</p>
+</div></div>`;
+AFTER.login = () => setTimeout(() => $('#lgUser')?.focus(), 50);
+App.login = e => {
+  e.preventDefault();
+  const name = $('#lgUser').value.trim(); const role = $('#lgRole').value;
+  if (!name) return toast('Please enter a username', 'err');
+  S.user = { name, role };
+  audit('login', `${displayName(S.user)} signed in as ${role}`);
+  toast(`Welcome, ${displayName(S.user)}`, 'ok');
+  S.history = []; show('dashboard', {}, false);
+};
+
+/* ---- 2. Dashboard ---- */
+SCREENS.dashboard = () => {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const now = new Date(); const monday = new Date(now); monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const today = S.consultations.filter(c => isSameDay(c.date, now));
+  const week = S.consultations.filter(c => c.date >= monday);
+  const drafts = S.consultations.filter(c => c.status === 'draft');
+  const f = S.dashFilter;
+  let list = [...S.consultations].sort((a, b) => b.date - a.date);
+  if (f === 'today') list = list.filter(c => isSameDay(c.date, now));
+  if (f === 'week') list = list.filter(c => c.date >= monday);
+  if (f === 'drafts') list = list.filter(c => c.status === 'draft');
+  const label = { all: 'Recent consultations', today: "Today's consultations", week: "This week's consultations", drafts: 'Pending drafts' }[f];
+  return `
+  <div class="hero">
+    <p>${greet},</p>
+    <h2>${esc(displayName(S.user))} 👋</h2>
+    <p>${now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })} · ${drafts.length ? `${drafts.length} note${drafts.length > 1 ? 's' : ''} awaiting review` : 'All notes reviewed'}</p>
+    <button class="btn btn-lg" onclick="App.startNew()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+      Start New Consultation</button>
+  </div>
+  <div class="grid-3" style="margin-top:14px">
+    <button class="stat ${f === 'today' ? 'on' : ''}" onclick="App.dashFilter('today')"><div class="num">${today.length}</div><div class="lbl">Today's patients</div></button>
+    <button class="stat ${f === 'week' ? 'on' : ''}" onclick="App.dashFilter('week')"><div class="num">${week.length}</div><div class="lbl">This week</div></button>
+    <button class="stat ${f === 'drafts' ? 'on' : ''}" onclick="App.dashFilter('drafts')"><div class="num" style="color:var(--warn)">${drafts.length}</div><div class="lbl">Pending drafts</div></button>
+  </div>
+  <div class="section-title"><h3>${label}</h3>${f !== 'all' ? `<button class="btn btn-ghost btn-sm" onclick="App.dashFilter('all')">Show all</button>` : ''}</div>
+  <div class="card" style="padding:6px 12px">
+    ${list.length ? `<div class="list">${list.slice(0, 8).map(c => { const p = getP(c.patientId); return `
+      <div class="li" onclick="App.openNote('${c.id}')">${avatar(p.name)}
+        <div class="grow"><div class="title">${esc(p.name)}</div><div class="meta">${esc((c.note.diagnosis || c.note.chiefComplaint || p.complaint).split('\n')[0])}</div><div class="tiny muted">${relDay(c.date)}</div></div>
+        ${statusBadge(c.status)}</div>`; }).join('')}</div>` : `<div class="empty">No consultations here yet.</div>`}
+  </div>`;
+};
+App.dashFilter = f => { S.dashFilter = S.dashFilter === f ? 'all' : f; render(); };
+App.startNew = () => show('select');
+App.openNote = cid => { if (S.review.cid !== cid) S.review = { cid, format: S.settings.defaultFormat, editing: false }; show('review', { cid }); };
+
+/* ---- 3. Patient list ---- */
+function patientRows(q, onClick) {
+  q = (q || '').toLowerCase().trim();
+  const list = S.patients.filter(p => !q || [p.name, p.complaint, p.phone].some(x => String(x).toLowerCase().includes(q))).sort((a, b) => a.name.localeCompare(b.name));
+  if (!list.length) return `<div class="empty">No patients match “${esc(q)}”.</div>`;
+  return list.map(p => `<div class="li" onclick="${onClick}('${p.id}')">${avatar(p.name)}
+    <div class="grow"><div class="title">${esc(p.name)} <span class="muted small" style="font-weight:500">· ${p.age}/${esc(p.gender)}</span></div><div class="meta">${esc(p.complaint)}</div></div>
+    <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>`).join('');
+}
+const searchBox = (id, ph) => `<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input class="input" id="${id}" type="search" placeholder="${ph}" autocomplete="off"></div>`;
+SCREENS.patients = () => `
+  ${searchBox('pSearch', 'Search by name, complaint or phone')}
+  <div class="section-title"><h3>All patients <span class="muted small">(${S.patients.length})</span></h3></div>
+  <div class="card" style="padding:6px 12px"><div class="list" id="pList">${patientRows('', 'App.openPatient')}</div></div>`;
+AFTER.patients = () => $('#pSearch').addEventListener('input', e => { $('#pList').innerHTML = patientRows(e.target.value, 'App.openPatient'); });
+App.openPatient = pid => show('patient', { pid });
+
+App.addPatient = (after) => {
+  modal({
+    title: 'Add Patient',
+    body: `<label class="field"><span>Full name *</span><input class="input" id="npName" placeholder="e.g. Kavita More"></label>
+      <div class="row" style="gap:10px;align-items:flex-start"><label class="field grow"><span>Age *</span><input class="input" id="npAge" type="number" min="0" max="120" inputmode="numeric"></label>
+      <label class="field grow"><span>Gender *</span><select class="input" id="npGender"><option value="M">Male</option><option value="F">Female</option><option value="O">Other</option></select></label></div>
+      <label class="field"><span>Phone</span><input class="input" id="npPhone" type="tel" inputmode="tel" placeholder="10-digit mobile"></label>
+      <label class="field" style="margin-bottom:0"><span>Chief complaint</span><input class="input" id="npComplaint" placeholder="e.g. Left ankle pain after fall"></label>`,
+    actions: [{ label: 'Cancel' }, {
+      label: 'Save Patient', cls: 'btn-primary', onClick: () => {
+        const name = $('#npName').value.trim(); const age = parseInt($('#npAge').value, 10);
+        if (!name) { toast('Name is required', 'err'); return true; }
+        if (!(age >= 0 && age <= 120)) { toast('Enter a valid age', 'err'); return true; }
+        const p = { id: uid('p'), name, age, gender: $('#npGender').value, phone: $('#npPhone').value.trim(), complaint: $('#npComplaint').value.trim() || 'Not specified', registered: new Date() };
+        S.patients.push(p);
+        audit('register', `Registered ${p.name} (${p.age}/${p.gender})`);
+        toast(`${p.name} added`, 'ok');
+        render();
+        if (typeof after === 'function') after(p);
+      }
+    }],
+  });
+};
+
+/* ---- 4. Select patient ---- */
+SCREENS.select = () => `
+  <div class="notice" style="margin-bottom:12px"><span>🎙️</span><span>Choose the patient in the room. Recording starts as soon as you tap a name — please inform the patient that the consultation is being transcribed.</span></div>
+  ${searchBox('sSearch', 'Search patient')}
+  <div class="section-title"><h3>Patients</h3><button class="btn btn-ghost btn-sm" onclick="App.addPatient()">+ New patient</button></div>
+  <div class="card" style="padding:6px 12px"><div class="list" id="sList">${patientRows('', 'App.startRecording')}</div></div>`;
+AFTER.select = () => $('#sSearch').addEventListener('input', e => { $('#sList').innerHTML = patientRows(e.target.value, 'App.startRecording'); });
+
+/* ---- 5. Recording ---- */
+SCREENS.recording = () => {
+  const r = S.rec; const p = getP(r.patientId);
+  const bars = Array.from({ length: 28 }, (_, i) => `<span style="animation-delay:${(i * 0.07 % 1).toFixed(2)}s;--h:${18 + Math.round(Math.abs(Math.sin(i * 1.7)) * 52)}px"></span>`).join('');
+  return `
+  <div class="rec-top">
+    <div class="chip">${avatar(p.name)}<span style="font-weight:600">${esc(p.name)}</span><span class="muted small">${p.age}/${esc(p.gender)}</span></div>
+    <span class="badge badge-live"><span class="live-dot"></span>LIVE</span>
+  </div>
+  <div class="card" style="margin-top:12px;text-align:center">
+    <div id="modeBadge"></div>
+    <div class="wave" id="wave">${bars}</div>
+    <div class="timer" id="timer">00:00</div>
+    <div class="small muted" id="recHint">Listening…</div>
+  </div>
+  <div class="section-title"><h3>Live transcript</h3><span class="tiny muted" id="segCount"></span></div>
+  <div class="card" style="padding:10px"><div class="transcript" id="transcript"></div></div>
+  <div style="margin-top:16px" class="stack">
+    <button class="btn btn-danger btn-block btn-lg" onclick="App.stopRecording()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg> Stop &amp; Generate Note</button>
+    <div class="actions">
+      <button class="btn btn-primary hidden" id="retryMic" onclick="App.retryMic()">🎤 Try microphone again</button>
+      <button class="btn btn-ghost hidden" id="simSwitch" onclick="App.switchToSim()">🔄 Demo simulation</button>
+      <button class="btn btn-ghost" onclick="App.discardRecording()">🗑️ Discard</button>
+    </div>
+  </div>`;
+};
+AFTER.recording = () => { setModeBadge(); renderTranscript(); tickTimer(); };
+
+App.startRecording = pid => {
+  const p = getP(pid); if (!p) return;
+  stopRecordingEngines();
+  const demo = S.settings.demoMode;
+  if (!SR_API && !demo) {
+    return modal({ title: 'Live transcription not available', body: `<p class="muted">This browser cannot convert speech to text. Please open MedScribe AI in <b>Google Chrome</b> — double-click <b>“Start MedScribe.command”</b> in the medscribe-ai folder.</p>`, actions: [{ label: 'OK', cls: 'btn-primary' }] });
+  }
+  S.rec = { patientId: pid, segments: [], interim: null, start: Date.now(), mode: SR_API ? 'live' : 'sim', sr: null, active: true, simToken: 0, simDone: false, gotSpeech: false, fatal: false, timerId: null, fallbackReason: SR_API ? '' : 'Demo mode — scripted dialogue, not a real consultation' };
+  audit('record', `Started recording for ${p.name} (${S.rec.mode === 'live' ? 'live microphone, ' + S.settings.lang : 'demo simulation'})`);
+  show('recording', { pid });
+  S.rec.timerId = setInterval(tickTimer, 500);
+  if (S.rec.mode === 'live') {
+    startLive();
+    const r = S.rec;
+    checkBackend().then(async () => { if (S.rec === r && r.mode === 'live') { await startAudioCapture(r); setModeBadge(); } });
+  } else startSim();
+};
+function tickTimer() {
+  const r = S.rec; const t = $('#timer'); if (!r || !t) return;
+  const sec = (Date.now() - r.start) / 1000; t.textContent = mmss(sec);
+  const hint = $('#recHint');
+  if (hint && r.mode === 'live' && !r.gotSpeech && sec > 12) hint.textContent = 'Not hearing anything yet — check the microphone is on and close to the speakers';
+}
+function setModeBadge() {
+  const r = S.rec; const el = $('#modeBadge'); if (!r || !el) return;
+  el.innerHTML = r.mode === 'live'
+    ? `<span class="badge badge-mode-live">🎤 Live Microphone · ${esc(S.settings.lang)}</span>${r.audio ? ` <span class="badge badge-neutral">${S.backend.provider === 'local' ? '💻' : '☁️'} ${sttName()} transcript on Stop</span>` : ''}`
+    : r.mode === 'error'
+      ? `<span class="badge" style="background:var(--danger-soft);color:var(--danger)">⚠️ Microphone not working</span><div class="tiny muted" style="margin-top:6px">${esc(r.errorReason)}</div>`
+      : `<span class="badge badge-mode-sim">🔄 Demo Simulation (not real)</span>${r.fallbackReason ? `<div class="tiny muted" style="margin-top:6px">${esc(r.fallbackReason)}</div>` : ''}`;
+  const sw = $('#simSwitch'); if (sw) sw.classList.toggle('hidden', !(S.settings.demoMode && r.mode !== 'sim'));
+  const rt = $('#retryMic'); if (rt) rt.classList.toggle('hidden', r.mode !== 'error');
+  const w = $('#wave'); if (w) w.classList.toggle('paused', r.mode === 'error' || r.simDone);
+  const hint = $('#recHint');
+  if (hint) hint.textContent = r.mode === 'sim' ? (r.simDone ? 'Simulation complete — tap “Stop & Generate Note”' : 'Playing a scripted demo dialogue — this is NOT your voice')
+    : r.mode === 'error' ? 'Transcription paused — fix the microphone, then tap “Try microphone again”' : 'Listening… speak naturally (Hindi / English)';
+}
+function renderTranscript() {
+  const r = S.rec; const el = $('#transcript'); if (!r || !el) return;
+  const line = (seg, interim) => `<p class="${interim ? 'interim' : ''}">${seg.speaker ? `<span class="spk ${seg.speaker === 'Doctor' ? 'd' : 'p'}">${seg.speaker}</span>` : ''}${esc(seg.text)}</p>`;
+  const html = r.segments.map(s => line(s, false)).join('') + (r.interim ? line(r.interim, true) : '');
+  el.innerHTML = html || `<p class="muted" style="text-align:center;padding:40px 0">${r.mode === 'live' ? '🎤 Waiting for speech… click “Allow” if Chrome asks for the microphone.' : r.mode === 'error' ? 'No transcript yet — the microphone is not working.' : 'Starting demo…'}</p>`;
+  el.scrollTop = el.scrollHeight;
+  const sc = $('#segCount'); if (sc) sc.textContent = r.segments.length ? `${r.segments.length} segment${r.segments.length > 1 ? 's' : ''}` : '';
+}
+function startLive() {
+  const r = S.rec;
+  let sr;
+  r.mode = 'live'; r.fatal = false; r.errorReason = '';
+  try { sr = new SR_API(); } catch (e) { return micFailed('start'); }
+  r.sr = sr;
+  sr.lang = S.settings.lang; sr.continuous = true; sr.interimResults = true; sr.maxAlternatives = 1;
+  sr.onresult = e => {
+    if (S.rec !== r || r.mode !== 'live') return;
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const res = e.results[i]; const t = res[0].transcript.trim();
+      if (res.isFinal) { if (t) r.segments.push({ speaker: '', text: t }); } else interim += res[0].transcript;
+    }
+    r.gotSpeech = true;
+    r.interim = interim.trim() ? { speaker: '', text: interim.trim() } : null;
+    renderTranscript();
+  };
+  sr.onerror = e => {
+    if (S.rec !== r || r.mode !== 'live') return;
+    if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(e.error)) { r.fatal = true; micFailed(e.error); }
+    else if (e.error === 'network') { r.netErrors = (r.netErrors || 0) + 1; if (!r.gotSpeech || r.netErrors > 3) { r.fatal = true; micFailed('network'); } }
+  };
+  sr.onend = () => {
+    if (S.rec === r && r.active && r.mode === 'live' && !r.fatal) setTimeout(() => { if (S.rec === r && r.active && r.mode === 'live') { try { sr.start(); } catch (_) { } } }, 250);
+  };
+  try { sr.start(); } catch (e) { micFailed('start'); }
+}
+function killSR(r) { if (r && r.sr) { const sr = r.sr; r.sr = null; sr.onend = null; sr.onresult = null; sr.onerror = null; try { sr.abort(); } catch (_) { } } }
+function micHelp(code) {
+  const isFile = location.protocol === 'file:';
+  const ua = navigator.userAgent; const notChrome = !/Chrome\//.test(ua) || /Edg\/|OPR\//.test(ua) || !!navigator.brave;
+  const reasons = {
+    'not-allowed': 'Microphone permission was blocked',
+    'service-not-allowed': 'The browser refused speech recognition',
+    'audio-capture': 'No working microphone was found',
+    network: 'Could not reach the speech service',
+    start: 'Speech recognition could not start',
+  };
+  const steps = [];
+  if (notChrome) steps.push('Use <b>Google Chrome</b>. Other browsers (Safari, Edge, Brave) do not support this live transcription properly.');
+  if (isFile) steps.push('Don’t open the file directly. Double-click <b>“Start MedScribe.command”</b> in the medscribe-ai folder — it opens the app at <b>localhost</b>, where Chrome allows the microphone.');
+  if (code === 'not-allowed' || code === 'start' || code === 'service-not-allowed') {
+    steps.push('In Chrome, click the <b>🔒 / microphone icon</b> at the left of the address bar → set Microphone to <b>Allow</b>.');
+    steps.push('On the Mac: <b>System Settings → Privacy &amp; Security → Microphone</b> → turn on <b>Google Chrome</b>, then quit and reopen Chrome.');
+  }
+  if (code === 'audio-capture') steps.push('Check the microphone/headset is connected and selected: <b>System Settings → Sound → Input</b>.', 'On the Mac: <b>System Settings → Privacy &amp; Security → Microphone</b> → turn on <b>Google Chrome</b>.');
+  if (code === 'network') steps.push('Chrome sends the audio to Google’s speech service — check the internet connection, then try again.');
+  return { reason: reasons[code] || 'Microphone problem', html: `<ol style="padding-left:20px;display:flex;flex-direction:column;gap:8px">${steps.map(s => `<li class="small">${s}</li>`).join('')}</ol>` };
+}
+function micFailed(code) {
+  const r = S.rec; if (!r || r.mode !== 'live') return;
+  killSR(r);
+  if (r.interim) { r.segments.push(r.interim); r.interim = null; }
+  const h = micHelp(code);
+  r.mode = 'error'; r.errorReason = h.reason;
+  audit('fallback', `${h.reason} (${getP(r.patientId).name})`);
+  setModeBadge(); renderTranscript();
+  modal({ title: '🎤 ' + h.reason, body: `<p class="muted small" style="margin-bottom:10px">MedScribe only writes what is actually said in the room. To capture the real consultation:</p>${h.html}`,
+    actions: [{ label: 'Close' }, { label: 'Try again', cls: 'btn-primary', onClick: () => App.retryMic() }] });
+}
+App.retryMic = () => { const r = S.rec; if (!r || r.mode === 'live') return; r.simToken++; r.netErrors = 0; startLive(); setModeBadge(); renderTranscript(); toast('Listening again…'); };
+App.switchToSim = () => {
+  const r = S.rec; if (!r) return;
+  killSR(r); if (r.interim) { r.segments.push(r.interim); r.interim = null; }
+  r.mode = 'sim'; r.fallbackReason = 'Demo mode — scripted dialogue, not a real consultation';
+  audit('fallback', `Demo simulation started by user (${getP(r.patientId).name})`);
+  setModeBadge(); startSim();
+};
+function startSim() {
+  const r = S.rec; const token = ++r.simToken; const script = scriptFor(getP(r.patientId));
+  setModeBadge(); renderTranscript();
+  (async () => {
+    await sleep(700);
+    for (const [spk, text] of script) {
+      const words = text.split(' ');
+      for (let i = 1; i <= words.length; i++) {
+        if (S.rec !== r || r.simToken !== token || !r.active) return;
+        r.interim = { speaker: spk, text: words.slice(0, i).join(' ') }; renderTranscript();
+        await sleep(55 + Math.random() * 55);
+      }
+      if (S.rec !== r || r.simToken !== token || !r.active) return;
+      r.segments.push({ speaker: spk, text }); r.interim = null; renderTranscript();
+      await sleep(450 + Math.random() * 300);
+    }
+    r.simDone = true; setModeBadge();
+    const w = $('#wave'); if (w) w.classList.add('paused');
+  })();
+}
+function stopRecordingEngines(keepAudio = false) {
+  const r = S.rec; if (!r) return;
+  r.active = false; r.simToken++;
+  killSR(r);
+  clearInterval(r.timerId);
+  if (!keepAudio && r.audio) stopAudioCapture(r);
+}
+App.stopRecording = () => {
+  const r = S.rec; if (!r) return;
+  const n = r.segments.length + (r.interim ? 1 : 0);
+  confirmModal('Stop & generate note?', `Recording time ${mmss((Date.now() - r.start) / 1000)} · ${n} transcript segment${n === 1 ? '' : 's'}. The AI will draft a case paper for your review — nothing is final until you approve it.`, 'Stop & Generate', 'btn-danger', () => finishRecording());
+};
+App.discardRecording = () => {
+  confirmModal('Discard this recording?', 'The transcript captured so far will be deleted and no note will be created.', 'Discard', 'btn-danger', () => {
+    const r = S.rec; const p = getP(r.patientId);
+    stopRecordingEngines(); S.rec = null;
+    audit('discard', `Discarded recording for ${p.name}`);
+    toast('Recording discarded');
+    App.back();
+  });
+};
+function finishRecording() {
+  const r = S.rec; const p = getP(r.patientId);
+  if (r.interim) { r.segments.push(r.interim); r.interim = null; }
+  stopRecordingEngines(true);
+  const dur = Math.round((Date.now() - r.start) / 1000);
+  let transcript = r.segments.map(s => (s.speaker ? s.speaker + ': ' : '') + s.text).join('\n');
+  let mode = r.mode === 'live' ? 'Live microphone' : 'Simulation';
+  audit('record', `Stopped recording for ${p.name} (${mmss(dur)}, ${mode})`);
+  const closeSpin = modal({ body: `<div style="text-align:center;padding:10px 0"><div class="spinner"></div><h3>Generating clinical note…</h3><p class="muted small">${r.audio ? `Transcribing the recording with ${sttName()}, then writing` : useNoteAI() ? 'Writing' : 'Extracting'} complaint, examination, diagnosis &amp; medicines${useNoteAI() ? ' with AI' : ''}</p>${isLocalAI() || (r.audio && S.backend.provider === 'local') ? '<p class="tiny muted">Running on this Mac, so this can take a minute or two.</p>' : ''}</div>`, dismissible: false });
+  (async () => {
+    const t0 = Date.now(); let medMatches = null; let sttError = '';
+    if (r.audio) {
+      const blob = await stopAudioCapture(r);
+      if (blob && blob.size) {
+        try {
+          const j = await serverTranscribe(blob, S.settings.lang);
+          if (j.transcript.trim()) {
+            transcript = j.transcript; mode = `${sttName()} (${j.model})`; medMatches = j.medicines;
+            audit('record', `${sttName()} transcribed ${p.name}'s consultation (${j.segments.length} segments; Doctor/Patient labels from text cues)`);
+          } else sttError = `${sttName()} returned an empty transcript`;
+        } catch (e) { sttError = e.name === 'AbortError' ? `${sttName()} timed out` : e.message; }
+      } else sttError = 'No audio was captured for server transcription';
+      if (sttError) audit('fallback', `${sttName()} transcription failed for ${p.name}: ${sttError}. Kept the browser's live transcript.`);
+    }
+    const lang = r.mode === 'live' ? S.settings.lang : 'hi-IN';
+    const d = await buildDraft(transcript, p, lang, medMatches);
+    await sleep(Math.max(0, 1100 - (Date.now() - t0)));
+    const note = d.note;
+    const c = { id: uid('c'), patientId: p.id, date: new Date(r.start), durationSec: dur, mode, lang, transcript, note, noteSource: d.source, aiError: d.aiError, aiDropped: d.dropped, status: 'draft', createdBy: displayName(S.user), approvedBy: '', approvedAt: null };
+    S.consultations.push(c); S.rec = null;
+    if (d.aiError) audit('fallback', `AI note failed for ${p.name}: ${d.aiError}. Used rule-based extraction on the same transcript.`);
+    audit('generate', `Draft generated for ${p.name} (${d.source}) — ${note.medicines.length} medicine${note.medicines.length === 1 ? '' : 's'}${d.dropped.length ? `, ${d.dropped.length} unsupported medicine${d.dropped.length === 1 ? '' : 's'} removed` : ''}`);
+    closeSpin();
+    if (!transcript.trim()) toast('No speech was captured — add the transcript in review, then regenerate', 'warn');
+    else toast('Draft note ready for review', 'ok');
+    S.review = { cid: c.id, format: S.settings.defaultFormat, editing: false };
+    S.history = [];
+    S.screen = 'dashboard'; S.params = {};
+    show('review', { cid: c.id });
+    if (sttError) modal({ title: `⚠️ ${sttName()} transcription failed`, body: `<p class="muted small">${esc(sttError)}</p><p class="muted small" style="margin-top:8px">No demo or sample data was used. This draft comes from the browser's own live transcript of this consultation. Check it carefully.</p>`, actions: [{ label: 'OK', cls: 'btn-primary' }] });
+  })();
+}
+
+/* ---- 6. Review note ---- */
+function curC() { return S.screen === 'review' ? getC(S.params.cid) : null; }
+const EMPTY = '<span class="cp-empty">— Not captured (doctor to fill) —</span>';
+function valOrEmpty(v) { return v && String(v).trim() ? `<div class="cp-val">${esc(v)}</div>` : EMPTY; }
+function fieldBox(field, val, ed, rows = 3) {
+  return ed ? `<textarea class="input" data-field="${field}" rows="${rows}">${esc(val)}</textarea>` : valOrEmpty(val);
+}
+function medsTable(c, ed) {
+  const meds = c.note.medicines;
+  if (!ed && !meds.length) return `<span class="cp-empty">— No medicines were dictated. The AI never adds medicines on its own. —</span>`;
+  const locked = c.status === 'approved';
+  const anySug = meds.some(hasSuggest);
+  const head = `<tr><th>#</th><th>Medicine</th><th>Frequency</th><th>Timing</th><th>Duration</th>${ed || (anySug && !locked) ? '<th></th>' : ''}</tr>`;
+  const sugTag = v => `<div class="sug">${esc(v)} <span class="flag">Suggested · not confirmed</span></div>`;
+  const cell = (m, k) => m[k] ? esc(m[k]) : (m.suggest && m.suggest[k] ? sugTag(m.suggest[k]) : '—');
+  const rows = meds.map((m, i) => ed
+    ? `<tr><td>${i + 1}</td>${['name', 'frequency', 'timing', 'duration'].map(k => `<td><input data-med="${i}" data-k="${k}" value="${esc(m[k])}" placeholder="${k === 'name' ? 'Tab …' : (m.suggest && m.suggest[k] ? 'Suggested: ' + esc(m.suggest[k]) : '—')}"></td>`).join('')}<td><button class="icon-btn" style="width:32px;height:32px" title="Remove" onclick="App.delMed(${i})">✕</button></td></tr>`
+    : `<tr><td>${i + 1}</td><td style="font-weight:600"${m.quote ? ` title="Heard: ${esc(m.quote)}"` : ''}>${esc(m.name)}${m.suggest && m.suggest.strength ? sugTag(m.suggest.strength) : ''}</td><td>${cell(m, 'frequency')}</td><td>${cell(m, 'timing')}</td><td>${cell(m, 'duration')}</td>${anySug && !locked ? `<td>${hasSuggest(m) ? `<div class="stack" style="gap:4px"><button class="btn btn-ok btn-sm" onclick="App.confirmMed(${i})">✓ Confirm dose</button><button class="btn btn-ghost btn-sm" onclick="App.dismissSuggest(${i})">Clear suggestion</button></div>` : ''}</td>` : ''}</tr>`).join('');
+  const sugNote = anySug && !ed && !locked ? `<div class="notice warn" style="margin-bottom:8px">⚠️ Doses marked “Suggested” were not clearly heard in the consultation: they come from the clinic medicine list or are the AI's guess. Confirm, change or clear each one before approving.</div>` : '';
+  return `${sugNote}<div class="tbl-wrap"><table class="meds">${head}${rows}</table></div>${ed ? `<button class="btn btn-soft btn-sm" style="margin-top:8px" onclick="App.addMed()">+ Add medicine</button>` : ''}`;
+}
+function fuFeeInputs(c, locked) {
+  const n = c.note;
+  return `<div class="row wrap" style="gap:10px;align-items:flex-end">
+    <label class="field grow" style="margin:0;min-width:150px"><span>Follow-up date</span><input class="input" type="date" data-field="followUpDate" value="${esc(n.followUpDate)}" ${locked ? 'disabled' : ''}></label>
+    <label class="field grow" style="margin:0;min-width:150px"><span>Follow-up note</span><input class="input" data-field="followUpNote" value="${esc(n.followUpNote)}" placeholder="e.g. With X-ray report" ${locked ? 'disabled' : ''}></label>
+  </div>`;
+}
+function feeInput(c, locked) {
+  return `<label class="field" style="margin:0;max-width:220px"><span>Consultation fee (₹)</span><input class="input" type="number" min="0" step="50" data-field="fee" value="${esc(c.note.fee)}" ${locked ? 'disabled' : ''}></label>`;
+}
+function casePaperHTML(c, ed, locked) {
+  const n = c.note;
+  const sec = (i, label, inner) => `<div class="cp-sec"><div class="cp-num">${i}</div><div><div class="cp-label">${label}</div>${inner}</div></div>`;
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:4px"><h3 style="font-size:16px">Case Paper</h3><span class="tiny muted">Parasnath Speciality Clinic, Badlapur</span></div>
+    ${sec(1, 'Patient Name', ed ? `<input class="input" data-field="patientName" value="${esc(n.patientName)}">` : valOrEmpty(n.patientName))}
+    ${sec(2, 'Age / Gender', ed ? `<input class="input" data-field="ageGender" value="${esc(n.ageGender)}">` : valOrEmpty(n.ageGender))}
+    ${sec(3, 'Chief Complaint', fieldBox('chiefComplaint', n.chiefComplaint, ed, 2))}
+    ${sec(4, 'Pain Details', fieldBox('painDetails', n.painDetails, ed, 4))}
+    ${sec(5, 'Past History', fieldBox('pastHistory', n.pastHistory, ed, 2))}
+    ${sec(6, 'Examination', fieldBox('examination', n.examination, ed, 4))}
+    ${sec(7, 'Investigation', fieldBox('investigation', n.investigation, ed, 2))}
+    ${sec(8, 'Diagnosis', fieldBox('diagnosis', n.diagnosis, ed, 2))}
+    ${sec(9, 'Medicines', medsTable(c, ed))}
+    ${sec(10, 'Advice' + (n.adviceTemplated && !ed ? ' <span class="flag">Template — verify</span>' : ''), fieldBox('advice', n.advice, ed, 4))}
+    ${sec(11, 'Follow-up', fuFeeInputs(c, locked))}
+    ${sec(12, 'Fee', feeInput(c, locked))}
+  </div>`;
+}
+function soapHTML(c, locked) {
+  const s = soapOf(c.note);
+  const block = (L, title, color, val) => `<div class="soap-sec"><div class="soap-h"><div class="soap-letter" style="background:${color}">${L}</div><h3 style="font-size:16px">${title}</h3></div>${val ? `<div class="cp-val">${esc(val)}</div>` : EMPTY}</div>`;
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between"><h3 style="font-size:16px">SOAP Note</h3><span class="tiny muted">Auto-built from case paper</span></div>
+    ${block('S', 'Subjective', '#0f8a8a', s.S)}${block('O', 'Objective', '#2563eb', s.O)}${block('A', 'Assessment', '#7c3aed', s.A)}${block('P', 'Plan', '#d97706', s.P)}
+  </div>
+  <div class="card"><h3 style="font-size:15px;margin-bottom:10px">Follow-up &amp; Fee</h3>${fuFeeInputs(c, locked)}<div style="margin-top:10px">${feeInput(c, locked)}</div></div>`;
+}
+SCREENS.review = () => {
+  const c = getC(S.params.cid); if (!c) return '<div class="empty">Note not found.</div>';
+  const p = getP(c.patientId); const locked = c.status === 'approved'; const ed = S.review.editing && !locked; const fmt = S.review.format;
+  return `
+  <div class="card">
+    <div class="row">${avatar(p.name)}
+      <div class="grow"><div style="font-weight:700;font-size:16px">${esc(p.name)} <span class="muted small" style="font-weight:500">· ${p.age}/${esc(p.gender)}</span></div>
+      <div class="tiny muted">${fmtDT(c.date)} · ${mmss(c.durationSec)} · ${esc(c.mode)}${c.lang ? ' · ' + esc(c.lang) : ''}</div></div>
+      ${statusBadge(c.status)}</div>
+    ${locked ? `<div class="notice" style="margin-top:12px;background:var(--ok-soft);color:var(--ok)">✅ Approved by ${esc(c.approvedBy)} on ${fmtDT(c.approvedAt)}. This note is locked.</div>`
+      : `<div class="notice warn" style="margin-top:12px">⚠️ AI-generated DRAFT. Review every section against the consultation before approving. Blank sections were not clearly spoken.</div>`}
+    ${c.noteSource ? `<div class="tiny muted" style="margin-top:8px">Note written by: ${esc(c.noteSource)}</div>` : ''}
+    ${!locked && c.aiError ? `<div class="notice warn" style="margin-top:8px">⚠️ AI note writing failed (${esc(c.aiError)}). This draft was built by the rule-based extractor from the same transcript.</div>` : ''}
+    ${!locked && c.aiDropped && c.aiDropped.length ? `<div class="notice warn" style="margin-top:8px">⚠️ Removed ${c.aiDropped.length} medicine${c.aiDropped.length === 1 ? '' : 's'} the AI listed but could not show in the transcript: ${esc(c.aiDropped.map(x => x.name).join(', '))}. Add ${c.aiDropped.length === 1 ? 'it' : 'them'} by hand only if actually prescribed.</div>` : ''}
+  </div>
+  <div class="row" style="justify-content:space-between;margin:16px 2px 10px;flex-wrap:wrap;gap:8px">
+    <div class="seg" role="tablist"><button class="${fmt === 'case' ? 'on' : ''}" onclick="App.setFormat('case')">12-Section Case Paper</button><button class="${fmt === 'soap' ? 'on' : ''}" onclick="App.setFormat('soap')">SOAP</button></div>
+    ${ed ? '<span class="badge badge-neutral">✏️ Editing</span>' : ''}
+  </div>
+  ${fmt === 'case' ? casePaperHTML(c, ed, locked) : soapHTML(c, locked)}
+  <div class="section-title"><h3>Transcript</h3><span class="tiny muted">${c.transcript ? c.transcript.split('\n').length + ' lines' : 'empty'}</span></div>
+  <div class="card">
+    <textarea class="input" data-field="transcript" rows="8" ${locked ? 'readonly' : ''} placeholder="No speech captured. Type or paste the consultation here, then tap Regenerate.">${esc(c.transcript)}</textarea>
+    ${locked ? '' : `<div class="row" style="justify-content:space-between;margin-top:10px;flex-wrap:wrap"><span class="tiny muted">Corrected the transcript? Regenerate the draft from it.</span><button class="btn btn-ghost btn-sm" onclick="App.regenerate()">🔄 Regenerate note</button></div>`}
+  </div>
+  <div class="card" style="margin-top:16px">
+    ${locked ? '' : `<label class="consent"><input type="checkbox" id="consent"><span class="small"><b>I have reviewed this AI-generated note</b> and confirm it accurately reflects my clinical findings, diagnosis and prescription. I take responsibility for its contents.</span></label>`}
+    ${!locked && !isDoctor() ? `<p class="tiny" style="color:var(--warn);margin-top:8px">Only a signed-in Doctor can approve notes.</p>` : ''}
+    <div class="actions" style="margin-top:14px">
+      ${locked ? '' : `<button class="btn btn-ok" id="approveBtn" disabled onclick="App.approve()">✓ Approve</button>`}
+      <button class="btn btn-ghost" onclick="App.toggleEdit()">${ed ? '💾 Save edits' : '✏️ Edit'}</button>
+      <button class="btn btn-ghost" onclick="App.exportCSV()">📤 Export CSV</button>
+    </div>
+  </div>`;
+};
+AFTER.review = () => {
+  const cb = $('#consent'); const ab = $('#approveBtn');
+  if (cb && ab) cb.addEventListener('change', () => { ab.disabled = !cb.checked; });
+};
+App.setFormat = f => { S.review.format = f; render(); };
+App.toggleEdit = () => {
+  const c = curC(); if (!c) return;
+  if (c.status === 'approved') {
+    if (!isDoctor()) return toast('Only a doctor can reopen an approved note', 'err');
+    return confirmModal('Reopen approved note?', 'The note will return to DRAFT and must be approved again with consent.', 'Reopen for editing', 'btn-primary', () => {
+      c.status = 'draft'; c.approvedBy = ''; c.approvedAt = null; S.review.editing = true; S.review.format = 'case';
+      audit('reopen', `Reopened approved note for ${getP(c.patientId).name}`); toast('Note reopened as draft'); render();
+    });
+  }
+  if (S.review.editing) {
+    S.review.editing = false;
+    c.note.medicines = c.note.medicines.filter(m => m.name.trim());
+    audit('edit', `Edited note for ${getP(c.patientId).name}`);
+    toast('Edits saved', 'ok');
+  } else { S.review.editing = true; S.review.format = 'case'; }
+  render();
+};
+App.addMed = () => { const c = curC(); c.note.medicines.push({ name: '', frequency: '', timing: '', duration: '' }); render(); const ins = document.querySelectorAll('[data-k="name"]'); ins[ins.length - 1]?.focus(); };
+App.delMed = i => { const c = curC(); c.note.medicines.splice(i, 1); render(); };
+App.confirmMed = i => {
+  const c = curC(); const m = c && c.note.medicines[i]; if (!m || !hasSuggest(m)) return;
+  if (!isDoctor()) return toast('Only a doctor can confirm a dose', 'err');
+  const s = m.suggest;
+  if (s.strength && !/\d/.test(m.name)) m.name += ' ' + s.strength;
+  for (const f of MED_FIELDS) if (s[f] && !m[f]) m[f] = s[f];
+  delete m.suggest;
+  audit('edit', `${displayName(S.user)} confirmed clinic default dose for ${m.name} (${getP(c.patientId).name})`);
+  toast('Dose confirmed', 'ok'); render();
+};
+App.dismissSuggest = i => {
+  const c = curC(); const m = c && c.note.medicines[i]; if (!m) return;
+  delete m.suggest; audit('edit', `Cleared suggested dose for ${m.name} (${getP(c.patientId).name})`); render();
+};
+App.regenerate = () => {
+  const c = curC(); if (!c) return;
+  confirmModal('Regenerate from transcript?', 'All case-paper fields will be re-extracted from the current transcript. Manual edits to the note will be replaced (fee is kept).', 'Regenerate', 'btn-primary', () => {
+    const p = getP(c.patientId); const fee = c.note.fee; S.review.editing = false;
+    const closeSpin = modal({ body: `<div style="text-align:center;padding:10px 0"><div class="spinner"></div><h3>Regenerating note…</h3>${isLocalAI() ? '<p class="tiny muted">Running on this Mac, so this can take a minute or two.</p>' : ''}</div>`, dismissible: false });
+    checkBackend().then(() => buildDraft(c.transcript, p, c.lang, null)).then(d => {
+      closeSpin();
+      c.note = d.note; c.note.fee = fee; c.noteSource = d.source; c.aiError = d.aiError; c.aiDropped = d.dropped;
+      if (d.aiError) audit('fallback', `AI note failed for ${p.name}: ${d.aiError}. Used rule-based extraction.`);
+      audit('regenerate', `Regenerated draft for ${p.name} (${d.source}) — ${c.note.medicines.length} medicines`);
+      toast(d.aiError ? 'AI unavailable — draft rebuilt with rule-based extraction' : 'Draft regenerated', d.aiError ? 'warn' : 'ok'); render();
+    }).catch(e => { closeSpin(); toast('Could not regenerate: ' + e.message, 'warn'); });
+  });
+};
+App.approve = () => {
+  const c = curC(); if (!c) return;
+  if (!$('#consent')?.checked) return toast('Please tick the review consent first', 'err');
+  if (!isDoctor()) return toast('Only a doctor can approve notes', 'err');
+  const pend = pendingSuggestions(c.note);
+  if (pend) { if (S.review.editing) { S.review.editing = false; render(); } return toast(`${pend} medicine${pend > 1 ? 's have' : ' has'} a suggested dose that is not confirmed. Confirm or clear it first.`, 'err'); }
+  if (S.review.editing) { c.note.medicines = c.note.medicines.filter(m => m.name.trim()); S.review.editing = false; audit('edit', `Edited note for ${getP(c.patientId).name}`); }
+  c.status = 'approved'; c.approvedBy = displayName(S.user); c.approvedAt = new Date();
+  audit('approve', `Approved note for ${getP(c.patientId).name} (consent confirmed)`);
+  toast('Note approved ✓', 'ok'); render();
+};
+App.exportCSV = () => {
+  const c = curC(); if (!c) return; const p = getP(c.patientId); const n = c.note; const s = soapOf(n);
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const rows = [['MedScribe AI — Parasnath Speciality Clinic, Badlapur'], ['Status', c.status.toUpperCase()], ['Consultation date', fmtDT(c.date)], ['Approved by', c.approvedBy || '—'], [],
+    ['Section', 'Value'], ['Patient Name', n.patientName], ['Age / Gender', n.ageGender], ['Phone', p.phone], ['Chief Complaint', n.chiefComplaint], ['Pain Details', n.painDetails], ['Past History', n.pastHistory],
+    ['Examination', n.examination], ['Investigation', n.investigation], ['Diagnosis', n.diagnosis], ['Advice', n.advice],
+    ['Follow-up', [n.followUpDate, n.followUpNote].filter(Boolean).join(' — ')], ['Fee (INR)', n.fee], [],
+    ['Medicine', 'Frequency', 'Timing', 'Duration', 'Unconfirmed suggestion'], ...n.medicines.map(m => [m.name, m.frequency, m.timing, m.duration, hasSuggest(m) ? Object.entries(m.suggest).map(([k, v]) => k + ': ' + v).join('; ') + ' (NOT confirmed)' : '']), [],
+    ['SOAP', ''], ['Subjective', s.S], ['Objective', s.O], ['Assessment', s.A], ['Plan', s.P], [], ['Transcript', c.transcript]];
+  const csv = '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `medscribe_${p.name.replace(/\s+/g, '_')}_${isoDate(c.date)}.csv`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  audit('export', `Exported ${c.status} note for ${p.name} as CSV`);
+  toast('CSV downloaded', 'ok');
+};
+
+/* Live binding of review inputs */
+document.addEventListener('input', e => {
+  const c = curC(); if (!c) return; const t = e.target;
+  if (t.dataset.field) { if (t.dataset.field === 'transcript') c.transcript = t.value; else c.note[t.dataset.field] = t.value; }
+  if (t.dataset.med !== undefined) {
+    const m = c.note.medicines[+t.dataset.med]; m[t.dataset.k] = t.value;
+    // Typing a value yourself replaces that field's suggestion.
+    if (m.suggest) { delete m.suggest[t.dataset.k === 'name' ? 'strength' : t.dataset.k]; if (!hasSuggest(m)) delete m.suggest; }
+  }
+});
+document.addEventListener('change', e => {
+  const c = curC(); if (!c) return; const f = e.target.dataset.field;
+  if (f === 'fee') audit('edit', `Fee set to ₹${c.note.fee} for ${getP(c.patientId).name}`);
+  if (f === 'followUpDate') audit('edit', `Follow-up set to ${c.note.followUpDate ? fmtDate(c.note.followUpDate + 'T00:00') : 'none'} for ${getP(c.patientId).name}`);
+  if (f === 'followUpDate' && S.review.format === 'soap') render();
+});
+
+/* ---- 7. Patient detail ---- */
+SCREENS.patient = () => {
+  const p = getP(S.params.pid); if (!p) return '<div class="empty">Patient not found.</div>';
+  const cs = consultsOf(p.id);
+  const last = cs[0];
+  return `
+  <div class="card" style="text-align:center;padding:22px 16px">
+    <div style="display:flex;justify-content:center;margin-bottom:10px">${avatar(p.name, 'lg')}</div>
+    <h2 style="font-size:22px">${esc(p.name)}</h2>
+    <p class="muted">${p.age} yrs · ${({ M: 'Male', F: 'Female', O: 'Other' })[p.gender] || esc(p.gender)}${p.phone ? ' · ' + esc(p.phone) : ''}</p>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="App.startRecording('${p.id}')">🎙️ Start Consultation</button>
+  </div>
+  <div class="card">
+    <div class="set-row"><span class="muted small">Presenting complaint</span><span style="text-align:right">${esc(p.complaint)}</span></div>
+    <div class="set-row"><span class="muted small">Registered</span><span>${fmtDate(p.registered)}</span></div>
+    <div class="set-row"><span class="muted small">Total visits</span><span>${cs.length}</span></div>
+    <div class="set-row"><span class="muted small">Latest diagnosis</span><span style="text-align:right">${esc(last?.note.diagnosis.split('\n')[0] || '—')}</span></div>
+    <div class="set-row"><span class="muted small">Next follow-up</span><span>${last?.note.followUpDate ? fmtDate(last.note.followUpDate + 'T00:00') : '—'}</span></div>
+  </div>
+  <div class="section-title"><h3>Consultation history</h3></div>
+  <div class="card" style="padding:6px 12px">${cs.length ? `<div class="list">${cs.map(c => `
+    <div class="li" onclick="App.openNote('${c.id}')"><div class="audit-ic">📋</div>
+      <div class="grow"><div class="title">${esc((c.note.diagnosis || c.note.chiefComplaint || 'Consultation').split('\n')[0])}</div>
+      <div class="meta">${relDay(c.date)} · ${c.note.medicines.length} medicine${c.note.medicines.length === 1 ? '' : 's'}</div></div>${statusBadge(c.status)}</div>`).join('')}</div>`
+    : '<div class="empty">No consultations yet. Tap “Start Consultation” to record the first one.</div>'}</div>`;
+};
+
+/* ---- 8. Audit log ---- */
+SCREENS.audit = () => {
+  const types = ['all', ...Object.keys(AUDIT_LABEL).filter(t => S.audit.some(a => a.type === t))];
+  const list = S.audit.filter(a => S.auditFilter === 'all' || a.type === S.auditFilter);
+  return `
+  <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <p class="small muted">${S.audit.length} events · newest first · immutable for this session</p>
+    <select class="input" style="width:auto;padding:8px 12px" onchange="App.auditFilter(this.value)">${types.map(t => `<option value="${t}" ${S.auditFilter === t ? 'selected' : ''}>${t === 'all' ? 'All events' : AUDIT_ICON[t] + ' ' + AUDIT_LABEL[t]}</option>`).join('')}</select>
+  </div>
+  <div class="card" style="margin-top:12px;padding:4px 14px">${list.length ? list.map(a => `
+    <div class="audit-item"><div class="audit-ic">${AUDIT_ICON[a.type] || '•'}</div>
+      <div class="grow"><div style="font-weight:600;font-size:14px">${esc(AUDIT_LABEL[a.type] || a.type)}</div>
+      <div class="small">${esc(a.detail)}</div>
+      <div class="tiny muted">${esc(a.user)}${a.role ? ' · ' + esc(a.role) : ''} · ${fmtDT(a.ts)} · ${new Date(a.ts).toLocaleTimeString('en-IN', { second: '2-digit', minute: '2-digit', hour: '2-digit' })}</div></div></div>`).join('')
+    : '<div class="empty">No events of this type.</div>'}</div>`;
+};
+App.auditFilter = v => { S.auditFilter = v; render(); };
+
+/* ---- 9. Settings ---- */
+SCREENS.settings = () => {
+  const st = S.settings;
+  return `
+  <div class="section-title" style="margin-top:4px"><h3>Clinic</h3></div>
+  <div class="card">
+    <div class="set-row"><span class="muted small">Clinic</span><span style="text-align:right;font-weight:600">Parasnath Speciality Clinic</span></div>
+    <div class="set-row"><span class="muted small">Location</span><span>Badlapur, Maharashtra</span></div>
+    <div class="set-row"><span class="muted small">Speciality</span><span style="text-align:right">Orthopaedic &amp; Musculoskeletal</span></div>
+    <div class="set-row"><span class="muted small">Signed in as</span><span>${esc(displayName(S.user))} · ${esc(S.user.role)}</span></div>
+    <div class="set-row"><span class="muted small">Default fee (₹)</span><input class="input" type="number" min="0" step="50" style="width:110px;padding:8px 10px" value="${st.fee}" onchange="App.setSetting('fee', this.value)"></div>
+  </div>
+  <div class="section-title"><h3>Speech recognition</h3></div>
+  <div class="card">
+    <label class="field"><span>Recognition language</span>
+      <select class="input" onchange="App.setSetting('lang', this.value)">${Object.entries(LANGS).map(([k, v]) => `<option value="${k}" ${st.lang === k ? 'selected' : ''}>${k} — ${v}</option>`).join('')}</select></label>
+    <div class="set-row"><span class="muted small">Web Speech API</span><span>${SR_API ? '<span class="dot" style="background:var(--ok)"></span> Supported' : '<span class="dot" style="background:var(--warn)"></span> Not supported (simulation only)'}</span></div>
+    <div class="set-row"><span class="muted small">Speech-to-text</span><span id="backendStatus" style="text-align:right"><span class="dot" style="background:var(--muted)"></span> Checking…</span></div>
+    <div class="set-row"><span class="muted small">AI note writing</span><span id="noteAIStatus" style="text-align:right"><span class="dot" style="background:var(--muted)"></span> Checking…</span></div>
+    <div class="set-row"><span class="muted small">Microphone</span><span id="micStatus"><span class="dot" style="background:var(--muted)"></span> Checking…</span></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="App.testMic()">🎤 Test microphone</button>
+  </div>
+  <div class="section-title"><h3>Preferences</h3></div>
+  <div class="card">
+    <div class="set-row"><span class="small">Default note format</span>
+      <div class="seg"><button class="${st.defaultFormat === 'case' ? 'on' : ''}" onclick="App.setSetting('defaultFormat','case')">Case Paper</button><button class="${st.defaultFormat === 'soap' ? 'on' : ''}" onclick="App.setSetting('defaultFormat','soap')">SOAP</button></div></div>
+    <div class="set-row"><span class="small">Demo simulation<br><span class="tiny muted">Scripted sample dialogue for training only — off for real consultations</span></span>
+      <div class="seg"><button class="${!st.demoMode ? 'on' : ''}" onclick="App.setSetting('demoMode',false)">Off</button><button class="${st.demoMode ? 'on' : ''}" onclick="App.setSetting('demoMode',true)">On</button></div></div>
+    <div class="set-row"><span class="small">Appearance</span>
+      <div class="seg">${['auto', 'light', 'dark'].map(t => `<button class="${st.theme === t ? 'on' : ''}" onclick="App.setSetting('theme','${t}')">${cap(t)}</button>`).join('')}</div></div>
+  </div>
+  <div class="section-title"><h3>About</h3></div>
+  <div class="card">
+    <div class="set-row"><span class="muted small">App</span><span>MedScribe AI v${VERSION}</span></div>
+    <div class="set-row"><span class="muted small">Developer</span><span>Revonix.Solution</span></div>
+    <div class="set-row"><span class="muted small">Data storage</span><span style="text-align:right">In-memory only · cleared on refresh</span></div>
+    <p class="tiny muted" style="margin-top:10px">AI drafts are assistive only. Medicines are taken solely from what is spoken; every note requires doctor review and consent before approval.</p>
+  </div>
+  <button class="btn btn-ghost btn-block btn-lg" style="margin-top:16px;color:var(--danger)" onclick="App.signOut()">Sign Out</button>`;
+};
+AFTER.settings = () => { refreshMicStatus(); refreshBackendStatus(); };
+async function refreshBackendStatus() {
+  const b = await checkBackend(); const el = $('#backendStatus'); if (!el) return;
+  const [color, text] = !b.ok ? ['muted', 'Off: backend not running (browser speech only)']
+    : useServerSTT() ? ['ok', `${sttName()} (${esc(b.model)})`]
+    : ['warn', `Backend in demo mode (${esc(b.reason || b.provider)}); using browser speech`];
+  el.innerHTML = `<span class="dot" style="background:var(--${color})"></span> ${text}`;
+  const ne = $('#noteAIStatus'); if (!ne) return; const na = b.noteAI;
+  const [nc, nt] = !b.ok ? ['muted', 'Off: backend not running (rule-based notes)']
+    : na && na.enabled ? ['ok', `On (${esc(aiLabel(na))})`]
+    : ['warn', `Off (${esc((na && na.reason) || 'not available')}); rule-based notes`];
+  ne.innerHTML = `<span class="dot" style="background:var(--${nc})"></span> ${nt}`;
+}
+async function refreshMicStatus() {
+  const el = $('#micStatus'); if (!el) return;
+  const set = (color, text) => { if ($('#micStatus')) $('#micStatus').innerHTML = `<span class="dot" style="background:var(--${color})"></span> ${text}`; };
+  if (!navigator.mediaDevices?.getUserMedia) return set('warn', 'Unavailable here');
+  try {
+    const st = await navigator.permissions.query({ name: 'microphone' });
+    const map = { granted: ['ok', 'Permission granted'], denied: ['danger', 'Permission blocked'], prompt: ['warn', 'Will ask on first use'] };
+    set(...(map[st.state] || ['muted', st.state]));
+  } catch (_) { set('muted', 'Status unknown — tap Test'); }
+}
+App.testMic = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop());
+    toast('Microphone is working ✓', 'ok');
+  } catch (e) { toast('Microphone unavailable: ' + (e.name === 'NotAllowedError' ? 'permission denied' : e.message || e.name), 'err'); }
+  refreshMicStatus();
+};
+App.setSetting = (k, v) => {
+  const labels = { lang: 'Speech language', defaultFormat: 'Default note format', theme: 'Appearance', fee: 'Default fee', demoMode: 'Demo simulation' };
+  if (k === 'fee') v = Math.max(0, parseInt(v, 10) || 0);
+  S.settings[k] = v;
+  if (k === 'theme') applyTheme();
+  audit('settings', `${labels[k]} changed to ${k === 'defaultFormat' ? (v === 'case' ? 'Case Paper' : 'SOAP') : v}`);
+  toast(`${labels[k]} updated`);
+  render();
+};
+function applyTheme() {
+  const t = S.settings.theme;
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+}
+App.signOut = () => {
+  confirmModal('Sign out?', 'Patient data stays in this browser tab until you refresh or close it.', 'Sign Out', 'btn-danger', () => {
+    audit('logout', `${displayName(S.user)} signed out`);
+    stopRecordingEngines(); S.rec = null; S.user = null; S.history = []; S.screen = 'login'; render();
+  });
+};
+
+/* ---------------- Boot ---------------- */
+seed();
+applyTheme();
+render();
+checkBackend();
+window.addEventListener('beforeunload', e => { if (S.rec) { e.preventDefault(); e.returnValue = ''; } });
+</script>
+</body>
+</html>

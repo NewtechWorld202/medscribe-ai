@@ -1,0 +1,8 @@
+# MedScribe AI backend. Install into the project virtualenv:
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+fastapi==0.128.8
+uvicorn==0.39.0
+groq==1.0.0
+python-multipart==0.0.20
+# Local speech-to-text on Apple silicon (optional; used when there is no Groq key)
+mlx-whisper==0.4.3
